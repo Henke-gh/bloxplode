@@ -3,10 +3,12 @@ import { computed } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
-const CELL_SIZE = 40;
-const SHAPE_COLOR = '#EDC9AF';
+const CELL_SIZE = 24;
+const SHAPE_COLOR = '#ffd700';
 const BG_COLOR = '#2a2a2a';
 const GRID_COLOR = '#444';
+const DROP_OFFSET_ROW = 2;
+const DROP_OFFSET_COL = 2;
 
 const store = useGameStore();
 
@@ -39,41 +41,102 @@ const handleDragStart = (e, shape) => {
   store.setDraggingShape(shape.id);
 
   const rect = e.currentTarget.getBoundingClientRect();
-  const offsetX = e.clientX - rect.left;
-  const offsetY = e.clientY - rect.top;
+  const offsetX = e.clientX - rect.right;
+  const offsetY = e.clientY - rect.bottom;
 
   e.dataTransfer.setData('shapeId', shape.id);
   e.dataTransfer.setData('offsetX', offsetX.toString());
   e.dataTransfer.setData('offsetY', offsetY.toString());
   e.dataTransfer.effectAllowed = 'move';
+
+  store.setDragPosition(e.clientX, e.clientY);
+
+  document.addEventListener('drag', handleGlobalDrag);
+  document.addEventListener('dragend', handleGlobalDragEnd);
+};
+
+const handleGlobalDrag = (e) => {
+  store.setDragPosition(e.clientX, e.clientY);
+};
+
+const handleGlobalDragEnd = () => {
+  document.removeEventListener('drag', handleGlobalDrag);
+  document.removeEventListener('dragend', handleGlobalDragEnd);
+  store.clearDragState();
 };
 
 const handleTouchStart = (e, shape) => {
-  e.preventDefault(); // Prevent scrolling and other default touch behaviors
+  e.preventDefault();
+  e.stopPropagation();
+
   store.setDraggingShape(shape.id);
+  store.setDragPosition(e.touches[0].clientX, e.touches[0].clientY);
 
-  // Store touch information for the drag
-  const touch = e.touches[0];
-  const rect = e.currentTarget.getBoundingClientRect();
-  const offsetX = touch.clientX - rect.left;
-  const offsetY = touch.clientY - rect.top;
+  // Set up global touch event listeners for the drag operation
+  const handleGlobalTouchMove = (globalE) => {
+    globalE.preventDefault();
+    const touch = globalE.touches[0];
+    if (!touch) return;
 
-  // Store touch drag data in a way that touchmove/touchend can access it
-  e.currentTarget._touchDragData = {
-    shapeId: shape.id,
-    offsetX,
-    offsetY,
-    startX: touch.clientX,
-    startY: touch.clientY
+    store.setDragPosition(touch.clientX, touch.clientY);
+
+    // Check if touch is over the board
+    const boardElement = document.querySelector('.board-container');
+    if (boardElement) {
+      const rect = boardElement.getBoundingClientRect();
+      const cursorX = touch.clientX - rect.left;
+      const cursorY = touch.clientY - rect.top;
+
+      let cursorCol = Math.floor(cursorX / 40);
+      let cursorRow = Math.floor(cursorY / 40);
+
+      // Offset placement location
+      cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
+      cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
+
+      if (cursorRow >= 0 && cursorRow < 8 && cursorCol >= 0 && cursorCol < 8) {
+        store.setHoveringCell(cursorRow, cursorCol);
+      } else {
+        store.setHoveringCell(null, null);
+      }
+    }
   };
-};
 
-const handleTouchEnd = (e) => {
-  // Clean up touch drag data
-  if (e.currentTarget._touchDragData) {
-    delete e.currentTarget._touchDragData;
-  }
-  store.clearDragState();
+  const handleGlobalTouchEnd = (globalE) => {
+    globalE.preventDefault();
+    const touch = globalE.changedTouches[0];
+    if (!touch) return;
+
+    // Check if touch ended over the board
+    const boardElement = document.querySelector('.board-container');
+    if (boardElement) {
+      const rect = boardElement.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      let col = Math.floor(x / 40);
+      let row = Math.floor(y / 40);
+
+      // Offset placement location
+      row = Math.max(0, row - DROP_OFFSET_ROW);
+      col = Math.max(0, col - DROP_OFFSET_COL);
+
+      const draggingShape = store.getDraggingShape();
+      if (draggingShape && row >= 0 && row < 8 && col >= 0 && col < 8) {
+        store.placeShape(draggingShape, row, col);
+      }
+    }
+
+    // Clean up
+    store.setHoveringCell(null, null);
+    store.clearDragState();
+    document.removeEventListener('touchmove', handleGlobalTouchMove);
+    document.removeEventListener('touchend', handleGlobalTouchEnd);
+  };
+
+  // Add global listeners
+  document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+  document.addEventListener('touchend', handleGlobalTouchEnd, { passive: false });
 };
 
 const handleDragEnd = () => {
@@ -87,7 +150,7 @@ const handleDragEnd = () => {
       width: getShapeConfig(shape).width + 'px',
       height: getShapeConfig(shape).height + 'px'
     }" :draggable="store.gameState === 'playing'" @dragstart="(e) => handleDragStart(e, shape)"
-      @dragend="handleDragEnd" @touchstart="(e) => handleTouchStart(e, shape)" @touchend="handleTouchEnd">
+      @dragend="handleDragEnd" @touchstart="(e) => handleTouchStart(e, shape)">
       <v-stage :config="{
         width: getShapeConfig(shape).width,
         height: getShapeConfig(shape).height
@@ -138,6 +201,8 @@ const handleDragEnd = () => {
   justify-content: center;
   border-radius: 4px;
   transition: transform 0.1s;
+  touch-action: none;
+  /* Prevent default touch behaviors */
 }
 
 .shape-container:active {

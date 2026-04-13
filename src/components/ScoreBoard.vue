@@ -28,15 +28,20 @@ const store = useGameStore();
 
 .score-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid gold;
+  border-radius: 1rem;
+  padding: 0.2rem 1rem;
 }
 
 .label {
-  font-size: 12px;
+  font-size: 1rem;
   color: #888;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .value {

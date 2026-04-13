@@ -19,6 +19,11 @@ export const useGameStore = defineStore("game", () => {
   const gameState = ref("playing");
   const draggingShapeId = ref(null);
   const hoveringCell = ref(null);
+  const dragPosition = ref(null); // { x, y } cursor position during drag
+
+  // Animation state for line/column clearing
+  const clearingPhase = ref(null); // null | 'row' | 'col' | 'complete'
+  const cellsToClear = ref([]); // [{row, col}]
 
   const canPlace = (shape, row, col) => {
     if (!shape) return false;
@@ -92,20 +97,113 @@ export const useGameStore = defineStore("game", () => {
 
     if (rowsToClear.length === 0 && colsToClear.length === 0) return;
 
+    // Calculate score first
     const points = calculateScore(rowsToClear.length, colsToClear.length);
     score.value += points;
 
-    rowsToClear.forEach((r) => {
+    // Collect cells to clear (excluding intersections - don't clear twice)
+    const cellSet = new Set();
+    rowsToClear.forEach(r => {
       for (let c = 0; c < BOARD_SIZE; c++) {
-        board.value[r][c] = null;
+        cellSet.add(`${r},${c}`);
+      }
+    });
+    colsToClear.forEach(c => {
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        cellSet.add(`${r},${c}`);
       }
     });
 
-    colsToClear.forEach((c) => {
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        board.value[r][c] = null;
-      }
+    const allCells = Array.from(cellSet).map(key => {
+      const [row, col] = key.split(',').map(Number);
+      return { row, col };
     });
+
+    // Set up animation state - row first, then column
+    cellsToClear.value = allCells;
+    
+    if (rowsToClear.length > 0) {
+      clearingPhase.value = 'row';
+    } else {
+      clearingPhase.value = 'col';
+    }
+
+    return { rowsToClear, colsToClear, cells: allCells };
+  };
+
+  const confirmClear = () => {
+    if (clearingPhase.value === 'complete') return;
+
+    const cells = cellsToClear.value;
+    cells.forEach(({ row, col }) => {
+      board.value[row][col] = null;
+    });
+
+    if (clearingPhase.value === 'col') {
+      clearingPhase.value = 'complete';
+    }
+  };
+
+  const nextClearPhase = () => {
+    if (clearingPhase.value === 'row') {
+      // Clear row cells and prepare for column
+      const rowsToClear = [];
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        if (board.value[r].every((cell) => cell !== null)) {
+          rowsToClear.push(r);
+        }
+      }
+      
+      rowsToClear.forEach(r => {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          board.value[r][c] = null;
+        }
+      });
+
+      // Check if there's also columns to clear
+      let hasColsToClear = false;
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        let full = true;
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          if (board.value[r][c] !== null) {
+            full = false;
+            break;
+          }
+        }
+        if (full) {
+          hasColsToClear = true;
+          break;
+        }
+      }
+
+      if (hasColsToClear) {
+        clearingPhase.value = 'col';
+      } else {
+        clearingPhase.value = 'complete';
+      }
+    } else if (clearingPhase.value === 'col') {
+      // Clear remaining column cells
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        let full = true;
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          if (board.value[r][c] === null) {
+            full = false;
+            break;
+          }
+        }
+        if (full) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            board.value[r][c] = null;
+          }
+        }
+      }
+      clearingPhase.value = 'complete';
+    }
+  };
+
+  const resetClearState = () => {
+    clearingPhase.value = null;
+    cellsToClear.value = [];
   };
 
   const calculateScore = (rowsCleared, colsCleared) => {
@@ -158,6 +256,11 @@ export const useGameStore = defineStore("game", () => {
   const clearDragState = () => {
     draggingShapeId.value = null;
     hoveringCell.value = null;
+    dragPosition.value = null;
+  };
+
+  const setDragPosition = (x, y) => {
+    dragPosition.value = { x, y };
   };
 
   const getDraggingShape = () => {
@@ -171,6 +274,7 @@ export const useGameStore = defineStore("game", () => {
     score.value = 0;
     level.value = 1;
     gameState.value = "playing";
+    resetClearState();
   };
 
   return {
@@ -181,6 +285,9 @@ export const useGameStore = defineStore("game", () => {
     gameState,
     draggingShapeId,
     hoveringCell,
+    dragPosition,
+    clearingPhase,
+    cellsToClear,
     canPlace,
     placeShape,
     checkGameOver,
@@ -190,5 +297,9 @@ export const useGameStore = defineStore("game", () => {
     setHoveringCell,
     clearDragState,
     getDraggingShape,
+    setDragPosition,
+    confirmClear,
+    nextClearPhase,
+    resetClearState,
   };
 });

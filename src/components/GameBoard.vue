@@ -1,22 +1,32 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
 const CELL_SIZE = 40;
 const BOARD_SIZE = 8;
 const CELL_BG_COLOR = '#2a2a2a';
-const CELL_OCCUPIED_COLOR = '#EDC9AF';
+const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
 const BOARD_BG = '#1a1a1a';
 
-const VALID_PREVIEW_COLOR = 'rgba(237, 201, 175, 0.5)';
+const VALID_PREVIEW_COLOR = 'rgba(227, 32, 168, 89)';
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
+
+const ANIMATION_DURATION = 600;
+const DROP_OFFSET_ROW = 2;
+const DROP_OFFSET_COL = 2;
 
 const store = useGameStore();
 const boardContainer = ref(null);
 const cursorCell = ref(null);
+
+// Particle system for explosion animation
+const particles = ref([]);
+const clearingRowCells = ref([]);
+const clearingColCells = ref([]);
+let animationFrameId = null;
 
 const gridConfig = computed(() => ({
   width: BOARD_SIZE * CELL_SIZE,
@@ -27,13 +37,18 @@ const cells = computed(() => {
   const result = [];
   for (let row = 0; row < BOARD_SIZE; row++) {
     for (let col = 0; col < BOARD_SIZE; col++) {
+      // Keep cells visible during animation
+      const isRowClearing = store.clearingPhase === 'row' && clearingRowCells.value.some(c => c.row === row && c.col === col);
+      const isColClearing = store.clearingPhase === 'col' && clearingColCells.value.some(c => c.row === row && c.col === col);
+      const isClearing = isRowClearing || isColClearing;
+
       result.push({
         key: `${row}-${col}`,
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: GRID_COLOR,
-        strokeWidth: 1,
+        stroke: isClearing ? '#ffffff' : GRID_COLOR,
+        strokeWidth: isClearing ? 2 : 1,
         row,
         col
       });
@@ -97,6 +112,35 @@ const cursorIndicatorCells = computed(() => {
   return cursorCellIndicator;
 });
 
+
+
+// Watch drag position to update cursor cell
+watch(() => store.dragPosition, (newPos) => {
+  if (!newPos || !boardContainer.value) {
+    cursorCell.value = null;
+    return;
+  }
+
+  const rect = boardContainer.value.getBoundingClientRect();
+  const cursorX = newPos.x - rect.left;
+  const cursorY = newPos.y - rect.top;
+
+  let cursorCol = Math.floor(cursorX / CELL_SIZE);
+  let cursorRow = Math.floor(cursorY / CELL_SIZE);
+
+  // Offset placement location
+  cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
+  cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
+
+  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
+    cursorCell.value = { row: cursorRow, col: cursorCol };
+    store.setHoveringCell(cursorRow, cursorCol);
+  } else {
+    cursorCell.value = null;
+    store.setHoveringCell(null, null);
+  }
+});
+
 const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
@@ -106,8 +150,12 @@ const handleDragOver = (e) => {
   const cursorX = e.clientX - rect.left;
   const cursorY = e.clientY - rect.top;
 
-  const cursorCol = Math.floor(cursorX / CELL_SIZE);
-  const cursorRow = Math.floor(cursorY / CELL_SIZE);
+  let cursorCol = Math.floor(cursorX / CELL_SIZE);
+  let cursorRow = Math.floor(cursorY / CELL_SIZE);
+
+  // Offset placement location
+  cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
+  cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
 
   if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
     cursorCell.value = { row: cursorRow, col: cursorCol };
@@ -136,8 +184,12 @@ const handleDrop = (e) => {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  const col = Math.floor(x / CELL_SIZE);
-  const row = Math.floor(y / CELL_SIZE);
+  let col = Math.floor(x / CELL_SIZE);
+  let row = Math.floor(y / CELL_SIZE);
+
+  // Offset placement location
+  row = Math.max(0, row - DROP_OFFSET_ROW);
+  col = Math.max(0, col - DROP_OFFSET_COL);
 
   const shape = store.shapes.find(s => s.id === shapeId);
 
@@ -161,67 +213,138 @@ const handleDragEnd = () => {
   cursorCell.value = null;
 };
 
-const handleTouchMove = (e) => {
-  e.preventDefault(); // Prevent scrolling
-
-  const touch = e.touches[0];
-  if (!touch) return;
-
-  const rect = boardContainer.value.getBoundingClientRect();
-  const cursorX = touch.clientX - rect.left;
-  const cursorY = touch.clientY - rect.top;
-
-  const cursorCol = Math.floor(cursorX / CELL_SIZE);
-  const cursorRow = Math.floor(cursorY / CELL_SIZE);
-
-  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-    cursorCell.value = { row: cursorRow, col: cursorCol };
-    store.setHoveringCell(cursorRow, cursorCol);
-  } else {
-    cursorCell.value = null;
-    store.setHoveringCell(null, null);
+// Watch for clearing phase changes to trigger animations
+watch(() => store.clearingPhase, (newPhase, oldPhase) => {
+  if (newPhase && newPhase !== oldPhase) {
+    if (newPhase === 'row') {
+      triggerRowExplosion();
+    } else if (newPhase === 'col') {
+      triggerColExplosion();
+    } else if (newPhase === 'complete') {
+      store.resetClearState();
+    }
   }
-};
+});
 
-const handleTouchEnd = (e) => {
-  e.preventDefault();
+function triggerRowExplosion() {
+  const rowCells = store.cellsToClear.filter(cell =>
+    store.board[cell.row].every((c, idx) => c !== null)
+  );
+  clearingRowCells.value = rowCells;
 
-  const touch = e.changedTouches[0];
-  if (!touch) return;
+  rowCells.forEach(cell => {
+    createExplosionParticles(cell.row, cell.col);
+  });
 
-  // Find the shape that was being dragged via touch
-  const draggingShape = store.getDraggingShape();
-  if (!draggingShape) {
-    store.clearDragState();
-    cursorCell.value = null;
-    return;
-  }
+  setTimeout(() => {
+    store.nextClearPhase();
+  }, ANIMATION_DURATION);
+}
 
-  const rect = boardContainer.value.getBoundingClientRect();
-  const x = touch.clientX - rect.left;
-  const y = touch.clientY - rect.top;
-
-  const col = Math.floor(x / CELL_SIZE);
-  const row = Math.floor(y / CELL_SIZE);
-
-  if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
-    store.placeShape(draggingShape, row, col);
+function triggerColExplosion() {
+  const colCells = [];
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    let full = true;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      if (store.board[r][c] === null) {
+        full = false;
+        break;
+      }
+    }
+    if (full) {
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        colCells.push({ row: r, col: c });
+      }
+    }
   }
 
-  store.setHoveringCell(null, null);
-  cursorCell.value = null;
-};
+  clearingColCells.value = colCells;
 
-const handleTouchCancel = () => {
-  store.setHoveringCell(null, null);
-  cursorCell.value = null;
-};
+  colCells.forEach(cell => {
+    createExplosionParticles(cell.row, cell.col);
+  });
+
+  setTimeout(() => {
+    store.nextClearPhase();
+  }, ANIMATION_DURATION);
+}
+
+function createExplosionParticles(row, col) {
+  const centerX = col * CELL_SIZE + CELL_SIZE / 2;
+  const centerY = row * CELL_SIZE + CELL_SIZE / 2;
+  const particleSize = CELL_SIZE / 3;
+
+  for (let i = 0; i < 4; i++) {
+    const angle = (Math.PI / 2) * i + Math.random() * 0.5;
+    const speed = 80 + Math.random() * 60;
+
+    particles.value.push({
+      id: `${Date.now()}-${row}-${col}-${i}`,
+      startX: centerX,
+      startY: centerY,
+      x: centerX,
+      y: centerY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: particleSize,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 360,
+      color: '#ffffff',
+      startTime: Date.now(),
+      row,
+      col
+    });
+  }
+
+  startParticleAnimation();
+}
+
+function startParticleAnimation() {
+  if (animationFrameId) return;
+
+  const animate = () => {
+    const now = Date.now();
+    const elapsed = now - (particles.value[0]?.startTime || now);
+    const progress = elapsed / ANIMATION_DURATION;
+
+    if (progress >= 1) {
+      particles.value = [];
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      return;
+    }
+
+    particles.value = particles.value.map(p => {
+      const pElapsed = now - p.startTime;
+      const pProgress = pElapsed / ANIMATION_DURATION;
+
+      return {
+        ...p,
+        x: p.startX + p.vx * pProgress,
+        y: p.startY + p.vy * pProgress,
+        rotation: p.rotation + p.rotationSpeed * pProgress,
+        opacity: 1 - pProgress
+      };
+    });
+
+    animationFrameId = requestAnimationFrame(animate);
+  };
+
+  animationFrameId = requestAnimationFrame(animate);
+}
+
+onUnmounted(() => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+  }
+});
 </script>
 
 <template>
   <div ref="boardContainer" class="board-container" @dragover="handleDragOver" @dragenter="handleDragEnter"
-    @dragleave="handleDragLeave" @drop="handleDrop" @dragend="handleDragEnd" @touchmove="handleTouchMove"
-    @touchend="handleTouchEnd" @touchcancel="handleTouchCancel">
+    @dragleave="handleDragLeave" @drop="handleDrop" @dragend="handleDragEnd">
     <v-stage :config="gridConfig">
       <v-layer>
         <v-rect :config="{
@@ -256,6 +379,7 @@ const handleTouchCancel = () => {
           offsetX: 1,
           offsetY: 1
         }" />
+
         <v-rect v-for="cursorCell in cursorIndicatorCells" :key="cursorCell.key" :config="{
           x: cursorCell.x,
           y: cursorCell.y,
@@ -268,6 +392,16 @@ const handleTouchCancel = () => {
           offsetX: 1,
           offsetY: 1
         }" />
+        <v-rect v-for="particle in particles" :key="particle.id" :config="{
+          x: particle.x - particle.size / 2,
+          y: particle.y - particle.size / 2,
+          width: particle.size,
+          height: particle.size,
+          fill: particle.color,
+          rotation: particle.rotation,
+          opacity: particle.opacity,
+          cornerRadius: 2
+        }" />
       </v-layer>
     </v-stage>
   </div>
@@ -276,5 +410,10 @@ const handleTouchCancel = () => {
 <style scoped>
 .board-container {
   display: inline-block;
+  touch-action: none;
+  /* Prevent default touch behaviors like scrolling */
+  border: 4px double #ffd700;
+  border-radius: 1rem;
+  padding: 0.5rem;
 }
 </style>
