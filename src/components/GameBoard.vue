@@ -111,6 +111,7 @@ const cursorIndicatorCells = computed(() => {
 });
 
 // Shape overlay that follows cursor - shows actual shape blocks
+// Positioned so cursor is at bottom-right corner of the shape
 const shapeOverlay = computed(() => {
   const draggingShape = store.getDraggingShape();
   const dragPos = store.dragPosition;
@@ -137,9 +138,14 @@ const shapeOverlay = computed(() => {
   const shapeWidth = matrix[0].length * CELL_SIZE;
   const shapeHeight = matrix.length * CELL_SIZE;
 
-  // Position relative to the board container
-  const x = dragPos.x - boardRect.left - (shapeWidth / 2);
-  const y = dragPos.y - boardRect.top - (shapeHeight / 2);
+  // Position relative to the board container - match preview with 20px offset
+  const cursorX = dragPos.x - boardRect.left;
+  const cursorY = dragPos.y - boardRect.top;
+  const cursorCol = Math.floor(cursorX / CELL_SIZE);
+  const cursorRow = Math.floor(cursorY / CELL_SIZE);
+
+  const x = cursorCol * CELL_SIZE;
+  const y = cursorRow * CELL_SIZE;
 
   return {
     x,

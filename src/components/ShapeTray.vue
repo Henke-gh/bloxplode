@@ -39,14 +39,14 @@ const handleDragStart = (e, shape) => {
   store.setDraggingShape(shape.id);
 
   const rect = e.currentTarget.getBoundingClientRect();
-  const offsetX = e.clientX - rect.left;
-  const offsetY = e.clientY - rect.top;
+  const offsetX = e.clientX - rect.right;
+  const offsetY = e.clientY - rect.bottom;
 
   e.dataTransfer.setData('shapeId', shape.id);
   e.dataTransfer.setData('offsetX', offsetX.toString());
   e.dataTransfer.setData('offsetY', offsetY.toString());
   e.dataTransfer.effectAllowed = 'move';
-  
+
   store.setDragPosition(e.clientX, e.clientY);
 
   document.addEventListener('drag', handleGlobalDrag);
@@ -64,10 +64,11 @@ const handleGlobalDragEnd = () => {
 };
 
 const handleTouchStart = (e, shape) => {
-  e.preventDefault(); // Prevent scrolling and other default touch behaviors
-  e.stopPropagation(); // Prevent event from bubbling to Konva
+  e.preventDefault();
+  e.stopPropagation();
 
   store.setDraggingShape(shape.id);
+  store.setDragPosition(e.touches[0].clientX, e.touches[0].clientY);
 
   // Set up global touch event listeners for the drag operation
   const handleGlobalTouchMove = (globalE) => {
@@ -84,11 +85,10 @@ const handleTouchStart = (e, shape) => {
       const cursorX = touch.clientX - rect.left;
       const cursorY = touch.clientY - rect.top;
 
-      const cursorCol = Math.floor(cursorX / 40); // CELL_SIZE = 40
+      const cursorCol = Math.floor(cursorX / 40);
       const cursorRow = Math.floor(cursorY / 40);
 
-      if (cursorRow >= 0 && cursorRow < 8 && cursorCol >= 0 && cursorCol < 8) { // BOARD_SIZE = 8
-        // Update hover state - we'll need to access the store
+      if (cursorRow >= 0 && cursorRow < 8 && cursorCol >= 0 && cursorCol < 8) {
         store.setHoveringCell(cursorRow, cursorCol);
       } else {
         store.setHoveringCell(null, null);
