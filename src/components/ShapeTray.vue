@@ -7,6 +7,8 @@ const CELL_SIZE = 24;
 const SHAPE_COLOR = '#ffd700';
 const BG_COLOR = '#2a2a2a';
 const GRID_COLOR = '#444';
+const DROP_OFFSET_ROW = 2;
+const DROP_OFFSET_COL = 2;
 
 const store = useGameStore();
 
@@ -85,8 +87,12 @@ const handleTouchStart = (e, shape) => {
       const cursorX = touch.clientX - rect.left;
       const cursorY = touch.clientY - rect.top;
 
-      const cursorCol = Math.floor(cursorX / 40);
-      const cursorRow = Math.floor(cursorY / 40);
+      let cursorCol = Math.floor(cursorX / 40);
+      let cursorRow = Math.floor(cursorY / 40);
+
+      // Offset placement location
+      cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
+      cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
 
       if (cursorRow >= 0 && cursorRow < 8 && cursorCol >= 0 && cursorCol < 8) {
         store.setHoveringCell(cursorRow, cursorCol);
@@ -108,8 +114,12 @@ const handleTouchStart = (e, shape) => {
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
 
-      const col = Math.floor(x / 40);
-      const row = Math.floor(y / 40);
+      let col = Math.floor(x / 40);
+      let row = Math.floor(y / 40);
+
+      // Offset placement location
+      row = Math.max(0, row - DROP_OFFSET_ROW);
+      col = Math.max(0, col - DROP_OFFSET_COL);
 
       const draggingShape = store.getDraggingShape();
       if (draggingShape && row >= 0 && row < 8 && col >= 0 && col < 8) {
