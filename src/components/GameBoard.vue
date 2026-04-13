@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
@@ -14,9 +14,17 @@ const VALID_PREVIEW_COLOR = 'rgba(237, 201, 175, 0.5)';
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 
+const ANIMATION_DURATION = 600;
+
 const store = useGameStore();
 const boardContainer = ref(null);
 const cursorCell = ref(null);
+
+// Particle system for explosion animation
+const particles = ref([]);
+const clearingRowCells = ref([]);
+const clearingColCells = ref([]);
+let animationFrameId = null;
 
 const gridConfig = computed(() => ({
   width: BOARD_SIZE * CELL_SIZE,
@@ -27,13 +35,18 @@ const cells = computed(() => {
   const result = [];
   for (let row = 0; row < BOARD_SIZE; row++) {
     for (let col = 0; col < BOARD_SIZE; col++) {
+      // Keep cells visible during animation
+      const isRowClearing = store.clearingPhase === 'row' && clearingRowCells.value.some(c => c.row === row && c.col === col);
+      const isColClearing = store.clearingPhase === 'col' && clearingColCells.value.some(c => c.row === row && c.col === col);
+      const isClearing = isRowClearing || isColClearing;
+      
       result.push({
         key: `${row}-${col}`,
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: GRID_COLOR,
-        strokeWidth: 1,
+        stroke: isClearing ? '#ffffff' : GRID_COLOR,
+        strokeWidth: isClearing ? 2 : 1,
         row,
         col
       });
@@ -97,7 +110,7 @@ const cursorIndicatorCells = computed(() => {
   return cursorCellIndicator;
 });
 
-const handleDragOver = (e) => {
+  const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
@@ -160,6 +173,134 @@ const handleDragEnd = () => {
   store.setHoveringCell(null, null);
   cursorCell.value = null;
 };
+
+// Watch for clearing phase changes to trigger animations
+watch(() => store.clearingPhase, (newPhase, oldPhase) => {
+  if (newPhase && newPhase !== oldPhase) {
+    if (newPhase === 'row') {
+      triggerRowExplosion();
+    } else if (newPhase === 'col') {
+      triggerColExplosion();
+    } else if (newPhase === 'complete') {
+      store.resetClearState();
+    }
+  }
+});
+
+function triggerRowExplosion() {
+  const rowCells = store.cellsToClear.filter(cell => 
+    store.board[cell.row].every((c, idx) => c !== null)
+  );
+  clearingRowCells.value = rowCells;
+  
+  rowCells.forEach(cell => {
+    createExplosionParticles(cell.row, cell.col);
+  });
+
+  setTimeout(() => {
+    store.nextClearPhase();
+  }, ANIMATION_DURATION);
+}
+
+function triggerColExplosion() {
+  const colCells = [];
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    let full = true;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      if (store.board[r][c] === null) {
+        full = false;
+        break;
+      }
+    }
+    if (full) {
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        colCells.push({ row: r, col: c });
+      }
+    }
+  }
+  
+  clearingColCells.value = colCells;
+  
+  colCells.forEach(cell => {
+    createExplosionParticles(cell.row, cell.col);
+  });
+
+  setTimeout(() => {
+    store.nextClearPhase();
+  }, ANIMATION_DURATION);
+}
+
+function createExplosionParticles(row, col) {
+  const centerX = col * CELL_SIZE + CELL_SIZE / 2;
+  const centerY = row * CELL_SIZE + CELL_SIZE / 2;
+  const particleSize = CELL_SIZE / 3;
+
+  for (let i = 0; i < 4; i++) {
+    const angle = (Math.PI / 2) * i + Math.random() * 0.5;
+    const speed = 80 + Math.random() * 60;
+    
+    particles.value.push({
+      id: `${Date.now()}-${row}-${col}-${i}`,
+      startX: centerX,
+      startY: centerY,
+      x: centerX,
+      y: centerY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: particleSize,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 360,
+      color: '#ffffff',
+      startTime: Date.now(),
+      row,
+      col
+    });
+  }
+
+  startParticleAnimation();
+}
+
+function startParticleAnimation() {
+  if (animationFrameId) return;
+
+  const animate = () => {
+    const now = Date.now();
+    const elapsed = now - (particles.value[0]?.startTime || now);
+    const progress = elapsed / ANIMATION_DURATION;
+
+    if (progress >= 1) {
+      particles.value = [];
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      return;
+    }
+
+    particles.value = particles.value.map(p => {
+      const pElapsed = now - p.startTime;
+      const pProgress = pElapsed / ANIMATION_DURATION;
+      
+      return {
+        ...p,
+        x: p.startX + p.vx * pProgress,
+        y: p.startY + p.vy * pProgress,
+        rotation: p.rotation + p.rotationSpeed * pProgress,
+        opacity: 1 - pProgress
+      };
+    });
+
+    animationFrameId = requestAnimationFrame(animate);
+  };
+
+  animationFrameId = requestAnimationFrame(animate);
+}
+
+onUnmounted(() => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+  }
+});
 </script>
 
 <template>
@@ -210,6 +351,16 @@ const handleDragEnd = () => {
           cornerRadius: 2,
           offsetX: 1,
           offsetY: 1
+        }" />
+        <v-rect v-for="particle in particles" :key="particle.id" :config="{
+          x: particle.x - particle.size / 2,
+          y: particle.y - particle.size / 2,
+          width: particle.size,
+          height: particle.size,
+          fill: particle.color,
+          rotation: particle.rotation,
+          opacity: particle.opacity,
+          cornerRadius: 2
         }" />
       </v-layer>
     </v-stage>
