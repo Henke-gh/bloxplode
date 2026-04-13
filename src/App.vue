@@ -13,14 +13,14 @@ const store = useGameStore();
       <h1 class="title">Bloxplode</h1>
       <ScoreBoard />
     </header>
-    
+
     <main class="game-area">
       <GameBoard />
     </main>
-    
+
     <footer class="footer">
       <ShapeTray />
-      
+
       <div v-if="store.gameState === 'gameover'" class="game-over">
         <p>Game Over!</p>
         <button @click="store.resetGame">Play Again</button>
@@ -37,6 +37,9 @@ const store = useGameStore();
 }
 
 body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: #121212;
   min-height: 100vh;
 }
@@ -44,27 +47,27 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 24px;
-  padding: 24px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .header {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 32px;
 }
 
 .title {
   font-size: 32px;
-  color: #EDC9AF;
+  color: #E320A8;
   letter-spacing: 2px;
 }
 
 .game-area {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .footer {

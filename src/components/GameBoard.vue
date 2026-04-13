@@ -6,7 +6,7 @@ import { TETROMINOES } from '../assets/tetrominoes';
 const CELL_SIZE = 40;
 const BOARD_SIZE = 8;
 const CELL_BG_COLOR = '#2a2a2a';
-const CELL_OCCUPIED_COLOR = '#EDC9AF';
+const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
 const BOARD_BG = '#1a1a1a';
 
@@ -221,5 +221,8 @@ const handleDragEnd = () => {
   display: inline-block;
   touch-action: none;
   /* Prevent default touch behaviors like scrolling */
+  border: 4px double #ffd700;
+  border-radius: 1rem;
+  padding: 0.5rem;
 }
 </style>

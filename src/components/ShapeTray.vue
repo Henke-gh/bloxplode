@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
-const CELL_SIZE = 40;
-const SHAPE_COLOR = '#EDC9AF';
+const CELL_SIZE = 24;
+const SHAPE_COLOR = '#ffd700';
 const BG_COLOR = '#2a2a2a';
 const GRID_COLOR = '#444';
 
