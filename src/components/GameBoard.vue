@@ -110,6 +110,71 @@ const cursorIndicatorCells = computed(() => {
   return cursorCellIndicator;
 });
 
+// Shape overlay that follows cursor - shows actual shape blocks
+const shapeOverlay = computed(() => {
+  const draggingShape = store.getDraggingShape();
+  const dragPos = store.dragPosition;
+  const boardRect = boardContainer.value?.getBoundingClientRect();
+
+  if (!draggingShape || !dragPos || !boardRect) return null;
+
+  const matrix = TETROMINOES[draggingShape.name].shape;
+  const canPlace = store.canPlace(draggingShape, cursorCell.value?.row ?? 0, cursorCell.value?.col ?? 0);
+
+  const cells = [];
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      if (matrix[r][c]) {
+        cells.push({
+          key: `overlay-${r}-${c}`,
+          x: c * CELL_SIZE,
+          y: r * CELL_SIZE,
+        });
+      }
+    }
+  }
+
+  const shapeWidth = matrix[0].length * CELL_SIZE;
+  const shapeHeight = matrix.length * CELL_SIZE;
+
+  // Position relative to the board container
+  const x = dragPos.x - boardRect.left - (shapeWidth / 2);
+  const y = dragPos.y - boardRect.top - (shapeHeight / 2);
+
+  return {
+    x,
+    y,
+    width: shapeWidth,
+    height: shapeHeight,
+    cells,
+    canPlace,
+    shape: draggingShape.name
+  };
+});
+
+// Watch drag position to update cursor cell
+watch(() => store.dragPosition, (newPos) => {
+  if (!newPos || !boardContainer.value) {
+    cursorCell.value = null;
+    return;
+  }
+
+  const rect = boardContainer.value.getBoundingClientRect();
+  const cursorX = newPos.x - rect.left;
+  const cursorY = newPos.y - rect.top;
+
+  const cursorCol = Math.floor(cursorX / CELL_SIZE);
+  const cursorRow = Math.floor(cursorY / CELL_SIZE);
+
+  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
+    cursorCell.value = { row: cursorRow, col: cursorCol };
+    store.setHoveringCell(cursorRow, cursorCol);
+  } else {
+    cursorCell.value = null;
+    store.setHoveringCell(null, null);
+  }
+});
+
 const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
@@ -340,6 +405,31 @@ onUnmounted(() => {
           offsetX: 1,
           offsetY: 1
         }" />
+        <v-group v-if="shapeOverlay" :config="{
+          x: shapeOverlay.x,
+          y: shapeOverlay.y
+        }">
+          <v-rect :config="{
+            x: 0,
+            y: 0,
+            width: shapeOverlay.width,
+            height: shapeOverlay.height,
+            fill: 'rgba(0, 0, 0, 0.5)',
+            cornerRadius: 4
+          }" />
+          <v-rect v-for="cell in shapeOverlay.cells" :key="cell.key" :config="{
+            x: cell.x,
+            y: cell.y,
+            width: CELL_SIZE - 2,
+            height: CELL_SIZE - 2,
+            fill: shapeOverlay.canPlace ? CELL_OCCUPIED_COLOR : INVALID_PREVIEW_COLOR,
+            stroke: shapeOverlay.canPlace ? '#4CAF50' : '#f44336',
+            strokeWidth: 2,
+            cornerRadius: 2,
+            offsetX: 1,
+            offsetY: 1
+          }" />
+        </v-group>
         <v-rect v-for="cursorCell in cursorIndicatorCells" :key="cursorCell.key" :config="{
           x: cursorCell.x,
           y: cursorCell.y,

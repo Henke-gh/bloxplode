@@ -19,6 +19,7 @@ export const useGameStore = defineStore("game", () => {
   const gameState = ref("playing");
   const draggingShapeId = ref(null);
   const hoveringCell = ref(null);
+  const dragPosition = ref(null); // { x, y } cursor position during drag
 
   // Animation state for line/column clearing
   const clearingPhase = ref(null); // null | 'row' | 'col' | 'complete'
@@ -255,6 +256,11 @@ export const useGameStore = defineStore("game", () => {
   const clearDragState = () => {
     draggingShapeId.value = null;
     hoveringCell.value = null;
+    dragPosition.value = null;
+  };
+
+  const setDragPosition = (x, y) => {
+    dragPosition.value = { x, y };
   };
 
   const getDraggingShape = () => {
@@ -279,6 +285,7 @@ export const useGameStore = defineStore("game", () => {
     gameState,
     draggingShapeId,
     hoveringCell,
+    dragPosition,
     clearingPhase,
     cellsToClear,
     canPlace,
@@ -290,6 +297,7 @@ export const useGameStore = defineStore("game", () => {
     setHoveringCell,
     clearDragState,
     getDraggingShape,
+    setDragPosition,
     confirmClear,
     nextClearPhase,
     resetClearState,

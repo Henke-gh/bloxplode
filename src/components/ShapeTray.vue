@@ -46,6 +46,21 @@ const handleDragStart = (e, shape) => {
   e.dataTransfer.setData('offsetX', offsetX.toString());
   e.dataTransfer.setData('offsetY', offsetY.toString());
   e.dataTransfer.effectAllowed = 'move';
+  
+  store.setDragPosition(e.clientX, e.clientY);
+
+  document.addEventListener('drag', handleGlobalDrag);
+  document.addEventListener('dragend', handleGlobalDragEnd);
+};
+
+const handleGlobalDrag = (e) => {
+  store.setDragPosition(e.clientX, e.clientY);
+};
+
+const handleGlobalDragEnd = () => {
+  document.removeEventListener('drag', handleGlobalDrag);
+  document.removeEventListener('dragend', handleGlobalDragEnd);
+  store.clearDragState();
 };
 
 const handleTouchStart = (e, shape) => {
@@ -59,6 +74,8 @@ const handleTouchStart = (e, shape) => {
     globalE.preventDefault();
     const touch = globalE.touches[0];
     if (!touch) return;
+
+    store.setDragPosition(touch.clientX, touch.clientY);
 
     // Check if touch is over the board
     const boardElement = document.querySelector('.board-container');
@@ -102,6 +119,7 @@ const handleTouchStart = (e, shape) => {
 
     // Clean up
     store.setHoveringCell(null, null);
+    store.clearDragState();
     document.removeEventListener('touchmove', handleGlobalTouchMove);
     document.removeEventListener('touchend', handleGlobalTouchEnd);
   };
