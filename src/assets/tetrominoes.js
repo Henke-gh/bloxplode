@@ -85,6 +85,38 @@ export const TETROMINOES = {
     width: 3,
     height: 2,
   },
+  sL: {
+    shape: [
+      [1, 1],
+      [1, 0],
+    ],
+    width: 2,
+    height: 2,
+  },
+  sL2: {
+    shape: [
+      [1, 0],
+      [1, 1],
+    ],
+    width: 2,
+    height: 2,
+  },
+  sL3: {
+    shape: [
+      [0, 1],
+      [1, 1],
+    ],
+    width: 2,
+    height: 2,
+  },
+  sL4: {
+    shape: [
+      [1, 1],
+      [0, 1],
+    ],
+    width: 2,
+    height: 2,
+  },
 };
 
 export const SHAPE_NAMES = Object.keys(TETROMINOES);

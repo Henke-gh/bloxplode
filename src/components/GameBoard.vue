@@ -10,7 +10,7 @@ const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
 const BOARD_BG = '#1a1a1a';
 
-const VALID_PREVIEW_COLOR = 'rgba(237, 201, 175, 0.5)';
+const VALID_PREVIEW_COLOR = 'rgba(227, 32, 168, 89)';
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 
@@ -39,7 +39,7 @@ const cells = computed(() => {
       const isRowClearing = store.clearingPhase === 'row' && clearingRowCells.value.some(c => c.row === row && c.col === col);
       const isColClearing = store.clearingPhase === 'col' && clearingColCells.value.some(c => c.row === row && c.col === col);
       const isClearing = isRowClearing || isColClearing;
-      
+
       result.push({
         key: `${row}-${col}`,
         x: col * CELL_SIZE,
@@ -110,7 +110,7 @@ const cursorIndicatorCells = computed(() => {
   return cursorCellIndicator;
 });
 
-  const handleDragOver = (e) => {
+const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
@@ -188,11 +188,11 @@ watch(() => store.clearingPhase, (newPhase, oldPhase) => {
 });
 
 function triggerRowExplosion() {
-  const rowCells = store.cellsToClear.filter(cell => 
+  const rowCells = store.cellsToClear.filter(cell =>
     store.board[cell.row].every((c, idx) => c !== null)
   );
   clearingRowCells.value = rowCells;
-  
+
   rowCells.forEach(cell => {
     createExplosionParticles(cell.row, cell.col);
   });
@@ -218,9 +218,9 @@ function triggerColExplosion() {
       }
     }
   }
-  
+
   clearingColCells.value = colCells;
-  
+
   colCells.forEach(cell => {
     createExplosionParticles(cell.row, cell.col);
   });
@@ -238,7 +238,7 @@ function createExplosionParticles(row, col) {
   for (let i = 0; i < 4; i++) {
     const angle = (Math.PI / 2) * i + Math.random() * 0.5;
     const speed = 80 + Math.random() * 60;
-    
+
     particles.value.push({
       id: `${Date.now()}-${row}-${col}-${i}`,
       startX: centerX,
@@ -280,7 +280,7 @@ function startParticleAnimation() {
     particles.value = particles.value.map(p => {
       const pElapsed = now - p.startTime;
       const pProgress = pElapsed / ANIMATION_DURATION;
-      
+
       return {
         ...p,
         x: p.startX + p.vx * pProgress,

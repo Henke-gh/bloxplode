@@ -9,8 +9,8 @@ const store = useGameStore();
 
 <template>
   <div class="app">
-    <header class="header">
-      <h1 class="title">Bloxplode</h1>
+    <header class="header bitcount-ink-test">
+      <h1 class="title">BLOXPLODE</h1>
       <ScoreBoard />
     </header>
 
@@ -30,6 +30,26 @@ const store = useGameStore();
 </template>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Bitcount+Ink:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&display=swap');
+
+.bitcount-ink-test {
+  font-family: "Bitcount Ink", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0.5,
+    "CRSV" 0.5,
+    "ELSH" 50,
+    "ELXP" 0,
+    "SZP1" 0,
+    "SZP2" 0,
+    "XPN1" 0,
+    "XPN2" 0,
+    "YPN1" -10,
+    "YPN2" 10;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -59,7 +79,7 @@ body {
 }
 
 .title {
-  font-size: 32px;
+  font-size: 48px;
   color: #E320A8;
   letter-spacing: 2px;
 }
