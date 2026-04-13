@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "devMobile": "VITE_NETWORK_ACCESS=true vite",
     "build": "vite build",
     "preview": "vite preview"
   },

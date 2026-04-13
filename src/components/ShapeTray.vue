@@ -50,30 +50,65 @@ const handleDragStart = (e, shape) => {
 
 const handleTouchStart = (e, shape) => {
   e.preventDefault(); // Prevent scrolling and other default touch behaviors
+  e.stopPropagation(); // Prevent event from bubbling to Konva
+
   store.setDraggingShape(shape.id);
 
-  // Store touch information for the drag
-  const touch = e.touches[0];
-  const rect = e.currentTarget.getBoundingClientRect();
-  const offsetX = touch.clientX - rect.left;
-  const offsetY = touch.clientY - rect.top;
+  // Set up global touch event listeners for the drag operation
+  const handleGlobalTouchMove = (globalE) => {
+    globalE.preventDefault();
+    const touch = globalE.touches[0];
+    if (!touch) return;
 
-  // Store touch drag data in a way that touchmove/touchend can access it
-  e.currentTarget._touchDragData = {
-    shapeId: shape.id,
-    offsetX,
-    offsetY,
-    startX: touch.clientX,
-    startY: touch.clientY
+    // Check if touch is over the board
+    const boardElement = document.querySelector('.board-container');
+    if (boardElement) {
+      const rect = boardElement.getBoundingClientRect();
+      const cursorX = touch.clientX - rect.left;
+      const cursorY = touch.clientY - rect.top;
+
+      const cursorCol = Math.floor(cursorX / 40); // CELL_SIZE = 40
+      const cursorRow = Math.floor(cursorY / 40);
+
+      if (cursorRow >= 0 && cursorRow < 8 && cursorCol >= 0 && cursorCol < 8) { // BOARD_SIZE = 8
+        // Update hover state - we'll need to access the store
+        store.setHoveringCell(cursorRow, cursorCol);
+      } else {
+        store.setHoveringCell(null, null);
+      }
+    }
   };
-};
 
-const handleTouchEnd = (e) => {
-  // Clean up touch drag data
-  if (e.currentTarget._touchDragData) {
-    delete e.currentTarget._touchDragData;
-  }
-  store.clearDragState();
+  const handleGlobalTouchEnd = (globalE) => {
+    globalE.preventDefault();
+    const touch = globalE.changedTouches[0];
+    if (!touch) return;
+
+    // Check if touch ended over the board
+    const boardElement = document.querySelector('.board-container');
+    if (boardElement) {
+      const rect = boardElement.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      const col = Math.floor(x / 40);
+      const row = Math.floor(y / 40);
+
+      const draggingShape = store.getDraggingShape();
+      if (draggingShape && row >= 0 && row < 8 && col >= 0 && col < 8) {
+        store.placeShape(draggingShape, row, col);
+      }
+    }
+
+    // Clean up
+    store.setHoveringCell(null, null);
+    document.removeEventListener('touchmove', handleGlobalTouchMove);
+    document.removeEventListener('touchend', handleGlobalTouchEnd);
+  };
+
+  // Add global listeners
+  document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+  document.addEventListener('touchend', handleGlobalTouchEnd, { passive: false });
 };
 
 const handleDragEnd = () => {
@@ -87,7 +122,7 @@ const handleDragEnd = () => {
       width: getShapeConfig(shape).width + 'px',
       height: getShapeConfig(shape).height + 'px'
     }" :draggable="store.gameState === 'playing'" @dragstart="(e) => handleDragStart(e, shape)"
-      @dragend="handleDragEnd" @touchstart="(e) => handleTouchStart(e, shape)" @touchend="handleTouchEnd">
+      @dragend="handleDragEnd" @touchstart="(e) => handleTouchStart(e, shape)">
       <v-stage :config="{
         width: getShapeConfig(shape).width,
         height: getShapeConfig(shape).height
@@ -138,6 +173,8 @@ const handleDragEnd = () => {
   justify-content: center;
   border-radius: 4px;
   transition: transform 0.1s;
+  touch-action: none;
+  /* Prevent default touch behaviors */
 }
 
 .shape-container:active {

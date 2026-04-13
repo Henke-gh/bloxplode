@@ -160,68 +160,11 @@ const handleDragEnd = () => {
   store.setHoveringCell(null, null);
   cursorCell.value = null;
 };
-
-const handleTouchMove = (e) => {
-  e.preventDefault(); // Prevent scrolling
-
-  const touch = e.touches[0];
-  if (!touch) return;
-
-  const rect = boardContainer.value.getBoundingClientRect();
-  const cursorX = touch.clientX - rect.left;
-  const cursorY = touch.clientY - rect.top;
-
-  const cursorCol = Math.floor(cursorX / CELL_SIZE);
-  const cursorRow = Math.floor(cursorY / CELL_SIZE);
-
-  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-    cursorCell.value = { row: cursorRow, col: cursorCol };
-    store.setHoveringCell(cursorRow, cursorCol);
-  } else {
-    cursorCell.value = null;
-    store.setHoveringCell(null, null);
-  }
-};
-
-const handleTouchEnd = (e) => {
-  e.preventDefault();
-
-  const touch = e.changedTouches[0];
-  if (!touch) return;
-
-  // Find the shape that was being dragged via touch
-  const draggingShape = store.getDraggingShape();
-  if (!draggingShape) {
-    store.clearDragState();
-    cursorCell.value = null;
-    return;
-  }
-
-  const rect = boardContainer.value.getBoundingClientRect();
-  const x = touch.clientX - rect.left;
-  const y = touch.clientY - rect.top;
-
-  const col = Math.floor(x / CELL_SIZE);
-  const row = Math.floor(y / CELL_SIZE);
-
-  if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
-    store.placeShape(draggingShape, row, col);
-  }
-
-  store.setHoveringCell(null, null);
-  cursorCell.value = null;
-};
-
-const handleTouchCancel = () => {
-  store.setHoveringCell(null, null);
-  cursorCell.value = null;
-};
 </script>
 
 <template>
   <div ref="boardContainer" class="board-container" @dragover="handleDragOver" @dragenter="handleDragEnter"
-    @dragleave="handleDragLeave" @drop="handleDrop" @dragend="handleDragEnd" @touchmove="handleTouchMove"
-    @touchend="handleTouchEnd" @touchcancel="handleTouchCancel">
+    @dragleave="handleDragLeave" @drop="handleDrop" @dragend="handleDragEnd">
     <v-stage :config="gridConfig">
       <v-layer>
         <v-rect :config="{
@@ -276,5 +219,7 @@ const handleTouchCancel = () => {
 <style scoped>
 .board-container {
   display: inline-block;
+  touch-action: none;
+  /* Prevent default touch behaviors like scrolling */
 }
 </style>
