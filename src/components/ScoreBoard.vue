@@ -29,12 +29,6 @@ const store = useGameStore();
   border-radius: 8px;
 }
 
-.icon {
-  font-size: 1rem;
-  color: var(--gold);
-  font-weight: 800;
-}
-
 .score-item {
   display: flex;
   flex-direction: row;

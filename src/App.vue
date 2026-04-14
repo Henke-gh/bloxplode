@@ -4,6 +4,7 @@ import { useGameStore } from './stores/game';
 import GameBoard from './components/GameBoard.vue';
 import ShapeTray from './components/ShapeTray.vue';
 import ScoreBoard from './components/ScoreBoard.vue';
+import { Flower } from "@lucide/vue";
 
 const store = useGameStore();
 </script>
@@ -26,6 +27,7 @@ const store = useGameStore();
         <p>Game Over!</p>
         <button @click="store.resetGame">Play Again</button>
       </div>
+      <Flower class="icon" />
     </footer>
   </div>
 </template>

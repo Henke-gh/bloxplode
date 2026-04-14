@@ -10,7 +10,7 @@ const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
 const BOARD_BG = '#1a1a1a';
 
-const VALID_PREVIEW_COLOR = 'rgba(227, 32, 168, 89)';
+const VALID_PREVIEW_COLOR = '#e3ae20';
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 
@@ -102,7 +102,7 @@ const cursorIndicatorCells = computed(() => {
           key: `cursor-${r}-${c}`,
           x: (col + c) * CELL_SIZE,
           y: (row + r) * CELL_SIZE,
-          stroke: canPlace ? '#4CAF50' : '#f44336',
+          stroke: canPlace ? '#e320a8' : '#f44336',
           strokeWidth: 2,
         });
       }

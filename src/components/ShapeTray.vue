@@ -8,7 +8,7 @@ const BOARD_CELL_SIZE = 32;
 const BOARD_SIZE = 8;
 const SHAPE_COLOR = '#ffd700';
 const BG_COLOR = '#2a2a2a';
-const GRID_COLOR = '#444';
+const GRID_COLOR = '#e37620';
 const DROP_OFFSET_ROW = 2;
 const DROP_OFFSET_COL = 2;
 
@@ -172,8 +172,8 @@ const handleDragEnd = () => {
             height: CELL_SIZE - 2,
             fill: SHAPE_COLOR,
             stroke: GRID_COLOR,
-            strokeWidth: 1,
-            cornerRadius: 2,
+            strokeWidth: 2,
+            cornerRadius: 4,
             offsetX: 1,
             offsetY: 1
           }" />
