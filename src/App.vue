@@ -1,4 +1,5 @@
 <script setup>
+import "./assets/main.css";
 import { useGameStore } from './stores/game';
 import GameBoard from './components/GameBoard.vue';
 import ShapeTray from './components/ShapeTray.vue';
@@ -30,40 +31,6 @@ const store = useGameStore();
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bitcount+Ink:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&display=swap');
-
-.bitcount-ink-test {
-  font-family: "Bitcount Ink", system-ui;
-  font-optical-sizing: auto;
-  font-weight: 600;
-  font-style: normal;
-  font-variation-settings:
-    "slnt" 0.5,
-    "CRSV" 0.5,
-    "ELSH" 50,
-    "ELXP" 0,
-    "SZP1" 0,
-    "SZP2" 0,
-    "XPN1" 0,
-    "XPN2" 0,
-    "YPN1" -10,
-    "YPN2" 10;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #121212;
-  min-height: 100vh;
-}
-
 .app {
   display: flex;
   flex-direction: column;

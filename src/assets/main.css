@@ -1,0 +1,48 @@
+@import url("https://fonts.googleapis.com/css2?family=Bitcount+Ink:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&display=swap");
+
+:root {
+  --pinkDark: #c320e3;
+  --pink: #e320a8;
+  --gold: #e3ae20;
+  --light: #e6e6d9;
+  --orange: #e37620;
+  --brown: #422309;
+}
+
+.bitcount-ink-test {
+  font-family: "Bitcount Ink", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0.5,
+    "CRSV" 0.5,
+    "ELSH" 50,
+    "ELXP" 0,
+    "SZP1" 0,
+    "SZP2" 0,
+    "XPN1" 0,
+    "XPN2" 0,
+    "YPN1" -10,
+    "YPN2" 10;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #833ab4;
+  background: linear-gradient(
+    164deg,
+    rgba(131, 58, 180, 1) 0%,
+    rgb(253, 29, 186) 50%,
+    rgba(131, 58, 180, 1) 100%
+  );
+  min-height: 100vh;
+}

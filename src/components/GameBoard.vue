@@ -365,7 +365,7 @@ onUnmounted(() => {
           fill: cell.fill,
           stroke: cell.stroke,
           strokeWidth: 1,
-          cornerRadius: 2,
+          cornerRadius: 4,
           offsetX: 1,
           offsetY: 1
         }" />
@@ -375,7 +375,7 @@ onUnmounted(() => {
           width: CELL_SIZE - 2,
           height: CELL_SIZE - 2,
           fill: preview.fill,
-          cornerRadius: 2,
+          cornerRadius: 4,
           offsetX: 1,
           offsetY: 1
         }" />
@@ -388,7 +388,7 @@ onUnmounted(() => {
           fill: 'transparent',
           stroke: cursorCell.stroke,
           strokeWidth: cursorCell.strokeWidth,
-          cornerRadius: 2,
+          cornerRadius: 4,
           offsetX: 1,
           offsetY: 1
         }" />
