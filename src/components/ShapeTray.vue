@@ -4,9 +4,11 @@ import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
 const CELL_SIZE = 24;
+const BOARD_CELL_SIZE = 32;
+const BOARD_SIZE = 8;
 const SHAPE_COLOR = '#ffd700';
 const BG_COLOR = '#2a2a2a';
-const GRID_COLOR = '#444';
+const GRID_COLOR = '#e37620';
 const DROP_OFFSET_ROW = 2;
 const DROP_OFFSET_COL = 2;
 
@@ -87,14 +89,14 @@ const handleTouchStart = (e, shape) => {
       const cursorX = touch.clientX - rect.left;
       const cursorY = touch.clientY - rect.top;
 
-      let cursorCol = Math.floor(cursorX / 40);
-      let cursorRow = Math.floor(cursorY / 40);
+      let cursorCol = Math.floor(cursorX / BOARD_CELL_SIZE);
+      let cursorRow = Math.floor(cursorY / BOARD_CELL_SIZE);
 
       // Offset placement location
       cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
       cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
 
-      if (cursorRow >= 0 && cursorRow < 8 && cursorCol >= 0 && cursorCol < 8) {
+      if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
         store.setHoveringCell(cursorRow, cursorCol);
       } else {
         store.setHoveringCell(null, null);
@@ -114,8 +116,8 @@ const handleTouchStart = (e, shape) => {
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
 
-      let col = Math.floor(x / 40);
-      let row = Math.floor(y / 40);
+      let col = Math.floor(x / BOARD_CELL_SIZE);
+      let row = Math.floor(y / BOARD_CELL_SIZE);
 
       // Offset placement location
       row = Math.max(0, row - DROP_OFFSET_ROW);
@@ -161,7 +163,6 @@ const handleDragEnd = () => {
             y: 0,
             width: getShapeConfig(shape).width,
             height: getShapeConfig(shape).height,
-            fill: BG_COLOR,
             cornerRadius: 4
           }" />
           <v-rect v-for="cell in getShapeConfig(shape).cells" :key="cell.key" :config="{
@@ -171,8 +172,8 @@ const handleDragEnd = () => {
             height: CELL_SIZE - 2,
             fill: SHAPE_COLOR,
             stroke: GRID_COLOR,
-            strokeWidth: 1,
-            cornerRadius: 2,
+            strokeWidth: 2,
+            cornerRadius: 4,
             offsetX: 1,
             offsetY: 1
           }" />
@@ -186,8 +187,6 @@ const handleDragEnd = () => {
 .shape-tray {
   display: flex;
   gap: 24px;
-  padding: 16px;
-  background: #1a1a1a;
   border-radius: 8px;
   justify-content: center;
   align-items: center;

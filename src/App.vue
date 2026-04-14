@@ -1,15 +1,17 @@
 <script setup>
+import "./assets/main.css";
 import { useGameStore } from './stores/game';
 import GameBoard from './components/GameBoard.vue';
 import ShapeTray from './components/ShapeTray.vue';
 import ScoreBoard from './components/ScoreBoard.vue';
+import { Flower } from "@lucide/vue";
 
 const store = useGameStore();
 </script>
 
 <template>
   <div class="app">
-    <header class="header bitcount-ink-test">
+    <header class="header kavoon-regular">
       <h1 class="title">BLOXPLODE</h1>
       <ScoreBoard />
     </header>
@@ -25,45 +27,12 @@ const store = useGameStore();
         <p>Game Over!</p>
         <button @click="store.resetGame">Play Again</button>
       </div>
+      <Flower class="icon" />
     </footer>
   </div>
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bitcount+Ink:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&display=swap');
-
-.bitcount-ink-test {
-  font-family: "Bitcount Ink", system-ui;
-  font-optical-sizing: auto;
-  font-weight: 600;
-  font-style: normal;
-  font-variation-settings:
-    "slnt" 0.5,
-    "CRSV" 0.5,
-    "ELSH" 50,
-    "ELXP" 0,
-    "SZP1" 0,
-    "SZP2" 0,
-    "XPN1" 0,
-    "XPN2" 0,
-    "YPN1" -10,
-    "YPN2" 10;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #121212;
-  min-height: 100vh;
-}
-
 .app {
   display: flex;
   flex-direction: column;
@@ -75,12 +44,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 0.5rem;
 }
 
 .title {
   font-size: 48px;
-  color: #E320A8;
+  color: var(--gold);
   letter-spacing: 2px;
 }
 

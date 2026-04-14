@@ -1,4 +1,5 @@
 <script setup>
+import { ChessQueen } from '@lucide/vue';
 import { useGameStore } from '../stores/game';
 
 const store = useGameStore();
@@ -7,11 +8,12 @@ const store = useGameStore();
 <template>
   <div class="score-board">
     <div class="score-item">
-      <span class="label">Score</span>
+      <span class="label">Score: </span>
       <span class="value">{{ store.score }}</span>
     </div>
+    <ChessQueen class="icon" />
     <div class="score-item">
-      <span class="label">Level</span>
+      <span class="label">Level: </span>
       <span class="value">{{ store.level }}</span>
     </div>
   </div>
@@ -20,9 +22,10 @@ const store = useGameStore();
 <style scoped>
 .score-board {
   display: flex;
-  gap: 32px;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
   padding: 16px 24px;
-  background: #1a1a1a;
   border-radius: 8px;
 }
 
@@ -32,6 +35,7 @@ const store = useGameStore();
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  background: var(--pinkDarker);
   border: 2px solid gold;
   border-radius: 1rem;
   padding: 0.2rem 1rem;
@@ -39,14 +43,16 @@ const store = useGameStore();
 
 .label {
   font-size: 1rem;
-  color: #888;
+  color: var(--gold);
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .value {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #EDC9AF;
+  line-height: 1;
+  padding-bottom: 5px;
 }
 </style>

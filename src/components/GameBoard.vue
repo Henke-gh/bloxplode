@@ -3,14 +3,18 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
-const CELL_SIZE = 40;
+//Colours
+const pinkDark = '#c320e3';
+const pinkDarker = '#931dab';
+
+const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
-const CELL_BG_COLOR = '#2a2a2a';
+const CELL_BG_COLOR = pinkDark;
 const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
-const BOARD_BG = '#1a1a1a';
+const BOARD_BG = pinkDarker;
 
-const VALID_PREVIEW_COLOR = 'rgba(227, 32, 168, 89)';
+const VALID_PREVIEW_COLOR = '#e3ae20';
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 
@@ -47,7 +51,7 @@ const cells = computed(() => {
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: isClearing ? '#ffffff' : GRID_COLOR,
+        stroke: isClearing ? '#ffffff' : pinkDarker,
         strokeWidth: isClearing ? 2 : 1,
         row,
         col
@@ -102,7 +106,7 @@ const cursorIndicatorCells = computed(() => {
           key: `cursor-${r}-${c}`,
           x: (col + c) * CELL_SIZE,
           y: (row + r) * CELL_SIZE,
-          stroke: canPlace ? '#4CAF50' : '#f44336',
+          stroke: canPlace ? '#e320a8' : '#f44336',
           strokeWidth: 2,
         });
       }
@@ -243,20 +247,11 @@ function triggerRowExplosion() {
 
 function triggerColExplosion() {
   const colCells = [];
-  for (let c = 0; c < BOARD_SIZE; c++) {
-    let full = true;
+  store.colsToClear.forEach(c => {
     for (let r = 0; r < BOARD_SIZE; r++) {
-      if (store.board[r][c] === null) {
-        full = false;
-        break;
-      }
+      colCells.push({ row: r, col: c });
     }
-    if (full) {
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        colCells.push({ row: r, col: c });
-      }
-    }
-  }
+  });
 
   clearingColCells.value = colCells;
 
@@ -354,7 +349,7 @@ onUnmounted(() => {
           height: BOARD_SIZE * CELL_SIZE,
           fill: BOARD_BG,
           cornerRadius: 4,
-          stroke: GRID_COLOR,
+          stroke: pinkDark,
           strokeWidth: 2
         }" />
         <v-rect v-for="cell in cells" :key="cell.key" :config="{
@@ -365,9 +360,9 @@ onUnmounted(() => {
           fill: cell.fill,
           stroke: cell.stroke,
           strokeWidth: 1,
-          cornerRadius: 2,
-          offsetX: 1,
-          offsetY: 1
+          cornerRadius: 4,
+          offsetX: 0,
+          offsetY: 0
         }" />
         <v-rect v-for="preview in previewCells" :key="preview.key" :config="{
           x: preview.x,
@@ -375,9 +370,9 @@ onUnmounted(() => {
           width: CELL_SIZE - 2,
           height: CELL_SIZE - 2,
           fill: preview.fill,
-          cornerRadius: 2,
-          offsetX: 1,
-          offsetY: 1
+          cornerRadius: 4,
+          offsetX: 0,
+          offsetY: 0
         }" />
 
         <v-rect v-for="cursorCell in cursorIndicatorCells" :key="cursorCell.key" :config="{
@@ -388,7 +383,7 @@ onUnmounted(() => {
           fill: 'transparent',
           stroke: cursorCell.stroke,
           strokeWidth: cursorCell.strokeWidth,
-          cornerRadius: 2,
+          cornerRadius: 4,
           offsetX: 1,
           offsetY: 1
         }" />
@@ -415,5 +410,6 @@ onUnmounted(() => {
   border: 4px double #ffd700;
   border-radius: 1rem;
   padding: 0.5rem;
+  background: var(--pinkDarker);
 }
 </style>
