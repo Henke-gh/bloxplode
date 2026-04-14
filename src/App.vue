@@ -10,7 +10,7 @@ const store = useGameStore();
 
 <template>
   <div class="app">
-    <header class="header bitcount-ink-test">
+    <header class="header kavoon-regular">
       <h1 class="title">BLOXPLODE</h1>
       <ScoreBoard />
     </header>
@@ -47,7 +47,7 @@ const store = useGameStore();
 
 .title {
   font-size: 48px;
-  color: #E320A8;
+  color: var(--gold);
   letter-spacing: 2px;
 }
 
