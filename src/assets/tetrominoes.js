@@ -148,15 +148,22 @@ export const TETROMINOES = {
 
 export const SHAPE_NAMES = Object.keys(TETROMINOES);
 
-export function getRandomShapes(count = 3) {
-  const shapes = [];
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * SHAPE_NAMES.length);
-    shapes.push({
-      id: `${SHAPE_NAMES[randomIndex]}-${Date.now()}-${i}`,
-      name: SHAPE_NAMES[randomIndex],
-      ...TETROMINOES[SHAPE_NAMES[randomIndex]],
-    });
+function shuffleArray(array) {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
   }
-  return shapes;
+  return result;
+}
+
+export function getRandomShapes(count = 3) {
+  const availableShapes = shuffleArray(SHAPE_NAMES);
+  const selectedCount = Math.min(count, availableShapes.length);
+
+  return availableShapes.slice(0, selectedCount).map((name, index) => ({
+    id: `${name}-${Date.now()}-${index}`,
+    name,
+    ...TETROMINOES[name],
+  }));
 }
