@@ -8,6 +8,7 @@ import { useBoardPosition } from '../composables/useBoardPosition';
 const pinkDark = '#c320e3';
 const pinkDarker = '#931dab';
 const orange = '#e37620';
+const offWhite = '#e6e6d9';
 
 const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
@@ -248,28 +249,48 @@ function triggerColExplosion() {
 function createExplosionParticles(row, col) {
   const centerX = col * CELL_SIZE + CELL_SIZE / 2;
   const centerY = row * CELL_SIZE + CELL_SIZE / 2;
-  const particleSize = CELL_SIZE / 3;
+  const particleSize = CELL_SIZE / 8;
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 16; i++) {
     const angle = (Math.PI / 2) * i + Math.random() * 0.5;
     const speed = 80 + Math.random() * 60;
+    if (i % 2) {
+      particles.value.push({
+        id: `${Date.now()}-${row}-${col}-${i}`,
+        startX: centerX,
+        startY: centerY,
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: particleSize,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 360,
+        color: orange,
+        startTime: Date.now(),
+        row,
+        col
+      });
+    } else {
+      particles.value.push({
+        id: `${Date.now()}-${row}-${col}-${i}`,
+        startX: centerX,
+        startY: centerY,
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: particleSize,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 360,
+        color: offWhite,
+        startTime: Date.now(),
+        row,
+        col
+      });
+    }
 
-    particles.value.push({
-      id: `${Date.now()}-${row}-${col}-${i}`,
-      startX: centerX,
-      startY: centerY,
-      x: centerX,
-      y: centerY,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      size: particleSize,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 360,
-      color: '#ffffff',
-      startTime: Date.now(),
-      row,
-      col
-    });
+
   }
 
   startParticleAnimation();
