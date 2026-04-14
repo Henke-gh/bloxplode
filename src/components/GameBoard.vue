@@ -3,12 +3,16 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
+//Colours
+const pinkDark = '#c320e3';
+const pinkDarker = '#931dab';
+
 const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
-const CELL_BG_COLOR = '#2a2a2a';
+const CELL_BG_COLOR = pinkDark;
 const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
-const BOARD_BG = '#1a1a1a';
+const BOARD_BG = pinkDarker;
 
 const VALID_PREVIEW_COLOR = '#e3ae20';
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
@@ -47,7 +51,7 @@ const cells = computed(() => {
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: isClearing ? '#ffffff' : GRID_COLOR,
+        stroke: isClearing ? '#ffffff' : pinkDarker,
         strokeWidth: isClearing ? 2 : 1,
         row,
         col
@@ -354,7 +358,7 @@ onUnmounted(() => {
           height: BOARD_SIZE * CELL_SIZE,
           fill: BOARD_BG,
           cornerRadius: 4,
-          stroke: GRID_COLOR,
+          stroke: pinkDark,
           strokeWidth: 2
         }" />
         <v-rect v-for="cell in cells" :key="cell.key" :config="{
@@ -366,8 +370,8 @@ onUnmounted(() => {
           stroke: cell.stroke,
           strokeWidth: 1,
           cornerRadius: 4,
-          offsetX: 1,
-          offsetY: 1
+          offsetX: 0,
+          offsetY: 0
         }" />
         <v-rect v-for="preview in previewCells" :key="preview.key" :config="{
           x: preview.x,
@@ -376,8 +380,8 @@ onUnmounted(() => {
           height: CELL_SIZE - 2,
           fill: preview.fill,
           cornerRadius: 4,
-          offsetX: 1,
-          offsetY: 1
+          offsetX: 0,
+          offsetY: 0
         }" />
 
         <v-rect v-for="cursorCell in cursorIndicatorCells" :key="cursorCell.key" :config="{
