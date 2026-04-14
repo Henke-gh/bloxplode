@@ -7,6 +7,7 @@ import { useBoardPosition } from '../composables/useBoardPosition';
 //Colours
 const pinkDark = '#c320e3';
 const pinkDarker = '#931dab';
+const orange = '#e37620';
 
 const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
@@ -52,7 +53,7 @@ const cells = computed(() => {
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: isClearing ? '#ffffff' : pinkDarker,
+        stroke: isClearing ? orange : pinkDarker,
         strokeWidth: isClearing ? 2 : 1,
         row,
         col
