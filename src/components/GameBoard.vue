@@ -410,5 +410,6 @@ onUnmounted(() => {
   border: 4px double #ffd700;
   border-radius: 1rem;
   padding: 0.5rem;
+  background: var(--pinkDarker);
 }
 </style>

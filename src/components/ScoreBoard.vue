@@ -35,6 +35,7 @@ const store = useGameStore();
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  background: var(--pinkDarker);
   border: 2px solid gold;
   border-radius: 1rem;
   padding: 0.2rem 1rem;
