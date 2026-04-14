@@ -1,12 +1,8 @@
 <script setup>
 import { ChessQueen } from '@lucide/vue';
 import { useGameStore } from '../stores/game';
-import { onMounted, ref } from 'vue';
 
 const store = useGameStore();
-const highScore = ref(0);
-
-onMounted(() => { highScore.value = store.getHighScore() });
 </script>
 
 <template>
@@ -23,7 +19,7 @@ onMounted(() => { highScore.value = store.getHighScore() });
   </div>
   <div class="score-item">
     <span class="label">High Score: </span>
-    <span class="value">{{ highScore || 0 }}</span>
+    <span class="value">{{ store.highScore || 0 }}</span>
   </div>
 </template>
 

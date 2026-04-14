@@ -17,6 +17,7 @@ export const useGameStore = defineStore("game", () => {
   const score = ref(0);
   const level = ref(1);
   const gameState = ref("playing");
+  const highScore = ref(localStorage.getItem("highScore") || 0);
   const draggingShapeId = ref(null);
   const hoveringCell = ref(null);
   const dragPosition = ref(null); // { x, y } cursor position during drag
@@ -234,15 +235,12 @@ export const useGameStore = defineStore("game", () => {
 
     if (currentHighScore < score.value) {
       localStorage.setItem("highScore", score.value);
+      highScore.value = score.value;
     }
   };
 
   const getHighScore = () => {
-    const currentHighScore = localStorage.getItem("highScore");
-
-    if (currentHighScore) {
-      return currentHighScore;
-    } else return 0;
+    return highScore.value;
   };
 
   const setDraggingShape = (shapeId) => {
@@ -283,6 +281,7 @@ export const useGameStore = defineStore("game", () => {
     score,
     level,
     gameState,
+    highScore,
     draggingShapeId,
     hoveringCell,
     dragPosition,
