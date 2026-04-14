@@ -66,13 +66,15 @@ export const useGameStore = defineStore("game", () => {
     }
 
     shapes.value = shapes.value.filter((s) => s.id !== shape.id);
-    checkAndClearLines();
+    const cleared = checkAndClearLines();
 
     if (shapes.value.length === 0) {
       shapes.value = getRandomShapes(3);
     }
 
-    checkGameOver();
+    if (!cleared) {
+      checkGameOver();
+    }
     return true;
   };
 
@@ -97,7 +99,7 @@ export const useGameStore = defineStore("game", () => {
       if (full) foundCols.push(c);
     }
 
-    if (foundRows.length === 0 && foundCols.length === 0) return;
+    if (foundRows.length === 0 && foundCols.length === 0) return false;
 
     // Remember the original rows/columns to clear
     rowsToClear.value = [...foundRows];
@@ -172,6 +174,11 @@ export const useGameStore = defineStore("game", () => {
         }
       });
       clearingPhase.value = "complete";
+    }
+
+    if (clearingPhase.value === "complete") {
+      resetClearState();
+      checkGameOver();
     }
   };
 
