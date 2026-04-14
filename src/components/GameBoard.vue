@@ -247,20 +247,11 @@ function triggerRowExplosion() {
 
 function triggerColExplosion() {
   const colCells = [];
-  for (let c = 0; c < BOARD_SIZE; c++) {
-    let full = true;
+  store.colsToClear.forEach(c => {
     for (let r = 0; r < BOARD_SIZE; r++) {
-      if (store.board[r][c] === null) {
-        full = false;
-        break;
-      }
+      colCells.push({ row: r, col: c });
     }
-    if (full) {
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        colCells.push({ row: r, col: c });
-      }
-    }
-  }
+  });
 
   clearingColCells.value = colCells;
 

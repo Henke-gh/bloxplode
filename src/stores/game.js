@@ -23,6 +23,8 @@ export const useGameStore = defineStore("game", () => {
 
   // Animation state for line/column clearing
   const clearingPhase = ref(null); // null | 'row' | 'col' | 'complete'
+  const rowsToClear = ref([]); // [rowIndex]
+  const colsToClear = ref([]); // [colIndex]
   const cellsToClear = ref([]); // [{row, col}]
 
   const canPlace = (shape, row, col) => {
@@ -75,12 +77,12 @@ export const useGameStore = defineStore("game", () => {
   };
 
   const checkAndClearLines = () => {
-    const rowsToClear = [];
-    const colsToClear = [];
+    const foundRows = [];
+    const foundCols = [];
 
     for (let r = 0; r < BOARD_SIZE; r++) {
       if (board.value[r].every((cell) => cell !== null)) {
-        rowsToClear.push(r);
+        foundRows.push(r);
       }
     }
 
@@ -92,117 +94,91 @@ export const useGameStore = defineStore("game", () => {
           break;
         }
       }
-      if (full) colsToClear.push(c);
+      if (full) foundCols.push(c);
     }
 
-    if (rowsToClear.length === 0 && colsToClear.length === 0) return;
+    if (foundRows.length === 0 && foundCols.length === 0) return;
+
+    // Remember the original rows/columns to clear
+    rowsToClear.value = [...foundRows];
+    colsToClear.value = [...foundCols];
 
     // Calculate score first
-    const points = calculateScore(rowsToClear.length, colsToClear.length);
+    const points = calculateScore(foundRows.length, foundCols.length);
     score.value += points;
 
     // Collect cells to clear (excluding intersections - don't clear twice)
     const cellSet = new Set();
-    rowsToClear.forEach(r => {
+    foundRows.forEach((r) => {
       for (let c = 0; c < BOARD_SIZE; c++) {
         cellSet.add(`${r},${c}`);
       }
     });
-    colsToClear.forEach(c => {
+    foundCols.forEach((c) => {
       for (let r = 0; r < BOARD_SIZE; r++) {
         cellSet.add(`${r},${c}`);
       }
     });
 
-    const allCells = Array.from(cellSet).map(key => {
-      const [row, col] = key.split(',').map(Number);
+    const allCells = Array.from(cellSet).map((key) => {
+      const [row, col] = key.split(",").map(Number);
       return { row, col };
     });
 
     // Set up animation state - row first, then column
     cellsToClear.value = allCells;
-    
-    if (rowsToClear.length > 0) {
-      clearingPhase.value = 'row';
+
+    if (foundRows.length > 0) {
+      clearingPhase.value = "row";
     } else {
-      clearingPhase.value = 'col';
+      clearingPhase.value = "col";
     }
 
-    return { rowsToClear, colsToClear, cells: allCells };
+    return { rowsToClear: foundRows, colsToClear: foundCols, cells: allCells };
   };
 
   const confirmClear = () => {
-    if (clearingPhase.value === 'complete') return;
+    if (clearingPhase.value === "complete") return;
 
     const cells = cellsToClear.value;
     cells.forEach(({ row, col }) => {
       board.value[row][col] = null;
     });
 
-    if (clearingPhase.value === 'col') {
-      clearingPhase.value = 'complete';
+    if (clearingPhase.value === "col") {
+      clearingPhase.value = "complete";
     }
   };
 
   const nextClearPhase = () => {
-    if (clearingPhase.value === 'row') {
-      // Clear row cells and prepare for column
-      const rowsToClear = [];
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        if (board.value[r].every((cell) => cell !== null)) {
-          rowsToClear.push(r);
-        }
-      }
-      
-      rowsToClear.forEach(r => {
+    if (clearingPhase.value === "row") {
+      // Clear all rows that were originally full
+      rowsToClear.value.forEach((r) => {
         for (let c = 0; c < BOARD_SIZE; c++) {
           board.value[r][c] = null;
         }
       });
 
-      // Check if there's also columns to clear
-      let hasColsToClear = false;
-      for (let c = 0; c < BOARD_SIZE; c++) {
-        let full = true;
-        for (let r = 0; r < BOARD_SIZE; r++) {
-          if (board.value[r][c] !== null) {
-            full = false;
-            break;
-          }
-        }
-        if (full) {
-          hasColsToClear = true;
-          break;
-        }
-      }
-
-      if (hasColsToClear) {
-        clearingPhase.value = 'col';
+      if (colsToClear.value.length > 0) {
+        clearingPhase.value = "col";
       } else {
-        clearingPhase.value = 'complete';
+        clearingPhase.value = "complete";
       }
-    } else if (clearingPhase.value === 'col') {
-      // Clear remaining column cells
-      for (let c = 0; c < BOARD_SIZE; c++) {
-        let full = true;
+    } else if (clearingPhase.value === "col") {
+      // Clear all columns that were originally full
+      colsToClear.value.forEach((c) => {
         for (let r = 0; r < BOARD_SIZE; r++) {
-          if (board.value[r][c] === null) {
-            full = false;
-            break;
-          }
+          board.value[r][c] = null;
         }
-        if (full) {
-          for (let r = 0; r < BOARD_SIZE; r++) {
-            board.value[r][c] = null;
-          }
-        }
-      }
-      clearingPhase.value = 'complete';
+      });
+      clearingPhase.value = "complete";
     }
   };
 
   const resetClearState = () => {
     clearingPhase.value = null;
+    rowsToClear.value = [];
+    colsToClear.value = [];
     cellsToClear.value = [];
   };
 
@@ -265,7 +241,7 @@ export const useGameStore = defineStore("game", () => {
 
   const getDraggingShape = () => {
     if (!draggingShapeId.value) return null;
-    return shapes.value.find(s => s.id === draggingShapeId.value);
+    return shapes.value.find((s) => s.id === draggingShapeId.value);
   };
 
   const resetGame = () => {
@@ -287,6 +263,8 @@ export const useGameStore = defineStore("game", () => {
     hoveringCell,
     dragPosition,
     clearingPhase,
+    rowsToClear,
+    colsToClear,
     cellsToClear,
     canPlace,
     placeShape,
