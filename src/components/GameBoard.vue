@@ -3,7 +3,7 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 
-const CELL_SIZE = 40;
+const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
 const CELL_BG_COLOR = '#2a2a2a';
 const CELL_OCCUPIED_COLOR = '#ffd700';

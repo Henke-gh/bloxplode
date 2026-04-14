@@ -22,7 +22,6 @@ const store = useGameStore();
   display: flex;
   gap: 32px;
   padding: 16px 24px;
-  background: #1a1a1a;
   border-radius: 8px;
 }
 
