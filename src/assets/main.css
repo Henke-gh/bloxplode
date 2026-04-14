@@ -29,9 +29,9 @@ body {
   background: #833ab4;
   background: linear-gradient(
     164deg,
-    rgba(131, 58, 180, 1) 0%,
+    rgb(66, 30, 91) 0%,
     rgb(253, 29, 186) 50%,
-    rgba(131, 58, 180, 1) 100%
+    rgb(53, 23, 72) 100%
   );
   min-height: 100vh;
 }

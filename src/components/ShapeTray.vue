@@ -2,15 +2,14 @@
 import { computed } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
+import { useBoardPosition } from '../composables/useBoardPosition';
 
 const CELL_SIZE = 24;
-const BOARD_CELL_SIZE = 32;
-const BOARD_SIZE = 8;
 const SHAPE_COLOR = '#ffd700';
 const BG_COLOR = '#2a2a2a';
 const GRID_COLOR = '#e37620';
-const DROP_OFFSET_ROW = 2;
-const DROP_OFFSET_COL = 2;
+
+const { screenToBoard } = useBoardPosition();
 
 const store = useGameStore();
 
@@ -82,22 +81,13 @@ const handleTouchStart = (e, shape) => {
 
     store.setDragPosition(touch.clientX, touch.clientY);
 
-    // Check if touch is over the board
+    // Check if touch is over the board using composable
     const boardElement = document.querySelector('.board-container');
     if (boardElement) {
-      const rect = boardElement.getBoundingClientRect();
-      const cursorX = touch.clientX - rect.left;
-      const cursorY = touch.clientY - rect.top;
+      const boardPos = screenToBoard(touch.clientX, touch.clientY, boardElement);
 
-      let cursorCol = Math.floor(cursorX / BOARD_CELL_SIZE);
-      let cursorRow = Math.floor(cursorY / BOARD_CELL_SIZE);
-
-      // Offset placement location
-      cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
-      cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
-
-      if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-        store.setHoveringCell(cursorRow, cursorCol);
+      if (boardPos) {
+        store.setHoveringCell(boardPos.row, boardPos.col);
       } else {
         store.setHoveringCell(null, null);
       }
@@ -109,23 +99,16 @@ const handleTouchStart = (e, shape) => {
     const touch = globalE.changedTouches[0];
     if (!touch) return;
 
-    // Check if touch ended over the board
+    // Check if touch ended over the board using composable
     const boardElement = document.querySelector('.board-container');
     if (boardElement) {
-      const rect = boardElement.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
+      const boardPos = screenToBoard(touch.clientX, touch.clientY, boardElement);
 
-      let col = Math.floor(x / BOARD_CELL_SIZE);
-      let row = Math.floor(y / BOARD_CELL_SIZE);
-
-      // Offset placement location
-      row = Math.max(0, row - DROP_OFFSET_ROW);
-      col = Math.max(0, col - DROP_OFFSET_COL);
-
-      const draggingShape = store.getDraggingShape();
-      if (draggingShape && row >= 0 && row < 8 && col >= 0 && col < 8) {
-        store.placeShape(draggingShape, row, col);
+      if (boardPos) {
+        const draggingShape = store.getDraggingShape();
+        if (draggingShape) {
+          store.placeShape(draggingShape, boardPos.row, boardPos.col);
+        }
       }
     }
 
@@ -174,8 +157,8 @@ const handleDragEnd = () => {
             stroke: GRID_COLOR,
             strokeWidth: 2,
             cornerRadius: 4,
-            offsetX: 1,
-            offsetY: 1
+            offsetX: 0,
+            offsetY: 0
           }" />
         </v-layer>
       </v-stage>

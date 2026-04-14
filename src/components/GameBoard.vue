@@ -2,10 +2,14 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
+import { useBoardPosition } from '../composables/useBoardPosition';
 
 //Colours
 const pinkDark = '#c320e3';
 const pinkDarker = '#931dab';
+const orange = '#e37620';
+const offWhite = '#e6e6d9';
+const gold = '#e3ae20';
 
 const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
@@ -14,13 +18,13 @@ const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
 const BOARD_BG = pinkDarker;
 
-const VALID_PREVIEW_COLOR = '#e3ae20';
+const VALID_PREVIEW_COLOR = gold;
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 
 const ANIMATION_DURATION = 600;
-const DROP_OFFSET_ROW = 2;
-const DROP_OFFSET_COL = 2;
+
+const { screenToBoard, isValidBoardPosition } = useBoardPosition();
 
 const store = useGameStore();
 const boardContainer = ref(null);
@@ -51,7 +55,7 @@ const cells = computed(() => {
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: isClearing ? '#ffffff' : pinkDarker,
+        stroke: isClearing ? orange : pinkDarker,
         strokeWidth: isClearing ? 2 : 1,
         row,
         col
@@ -125,20 +129,11 @@ watch(() => store.dragPosition, (newPos) => {
     return;
   }
 
-  const rect = boardContainer.value.getBoundingClientRect();
-  const cursorX = newPos.x - rect.left;
-  const cursorY = newPos.y - rect.top;
+  const boardPos = screenToBoard(newPos.x, newPos.y, boardContainer.value);
 
-  let cursorCol = Math.floor(cursorX / CELL_SIZE);
-  let cursorRow = Math.floor(cursorY / CELL_SIZE);
-
-  // Offset placement location
-  cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
-  cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
-
-  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-    cursorCell.value = { row: cursorRow, col: cursorCol };
-    store.setHoveringCell(cursorRow, cursorCol);
+  if (boardPos) {
+    cursorCell.value = boardPos;
+    store.setHoveringCell(boardPos.row, boardPos.col);
   } else {
     cursorCell.value = null;
     store.setHoveringCell(null, null);
@@ -149,21 +144,11 @@ const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
-  const rect = boardContainer.value.getBoundingClientRect();
+  const boardPos = screenToBoard(e.clientX, e.clientY, boardContainer.value);
 
-  const cursorX = e.clientX - rect.left;
-  const cursorY = e.clientY - rect.top;
-
-  let cursorCol = Math.floor(cursorX / CELL_SIZE);
-  let cursorRow = Math.floor(cursorY / CELL_SIZE);
-
-  // Offset placement location
-  cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
-  cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
-
-  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-    cursorCell.value = { row: cursorRow, col: cursorCol };
-    store.setHoveringCell(cursorRow, cursorCol);
+  if (boardPos) {
+    cursorCell.value = boardPos;
+    store.setHoveringCell(boardPos.row, boardPos.col);
   } else {
     cursorCell.value = null;
     store.setHoveringCell(null, null);
@@ -184,20 +169,18 @@ const handleDrop = (e) => {
     return;
   }
 
-  const rect = boardContainer.value.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const boardPos = screenToBoard(e.clientX, e.clientY, boardContainer.value);
 
-  let col = Math.floor(x / CELL_SIZE);
-  let row = Math.floor(y / CELL_SIZE);
+  if (!boardPos) {
+    store.clearDragState();
+    cursorCell.value = null;
+    return;
+  }
 
-  // Offset placement location
-  row = Math.max(0, row - DROP_OFFSET_ROW);
-  col = Math.max(0, col - DROP_OFFSET_COL);
-
+  const { row, col } = boardPos;
   const shape = store.shapes.find(s => s.id === shapeId);
 
-  if (shape && row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+  if (shape) {
     store.placeShape(shape, row, col);
   }
 
@@ -267,28 +250,48 @@ function triggerColExplosion() {
 function createExplosionParticles(row, col) {
   const centerX = col * CELL_SIZE + CELL_SIZE / 2;
   const centerY = row * CELL_SIZE + CELL_SIZE / 2;
-  const particleSize = CELL_SIZE / 3;
+  const particleSize = CELL_SIZE / 8;
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 16; i++) {
     const angle = (Math.PI / 2) * i + Math.random() * 0.5;
     const speed = 80 + Math.random() * 60;
+    if (i % 2) {
+      particles.value.push({
+        id: `${Date.now()}-${row}-${col}-${i}`,
+        startX: centerX,
+        startY: centerY,
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: particleSize,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 360,
+        color: orange,
+        startTime: Date.now(),
+        row,
+        col
+      });
+    } else {
+      particles.value.push({
+        id: `${Date.now()}-${row}-${col}-${i}`,
+        startX: centerX,
+        startY: centerY,
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: particleSize,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 360,
+        color: offWhite,
+        startTime: Date.now(),
+        row,
+        col
+      });
+    }
 
-    particles.value.push({
-      id: `${Date.now()}-${row}-${col}-${i}`,
-      startX: centerX,
-      startY: centerY,
-      x: centerX,
-      y: centerY,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      size: particleSize,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 360,
-      color: '#ffffff',
-      startTime: Date.now(),
-      row,
-      col
-    });
+
   }
 
   startParticleAnimation();

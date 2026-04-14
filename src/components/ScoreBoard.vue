@@ -17,6 +17,10 @@ const store = useGameStore();
       <span class="value">{{ store.level }}</span>
     </div>
   </div>
+  <div class="score-item">
+    <span class="label">High Score: </span>
+    <span class="value">{{ store.highScore || 0 }}</span>
+  </div>
 </template>
 
 <style scoped>
