@@ -9,6 +9,7 @@ const pinkDark = '#c320e3';
 const pinkDarker = '#931dab';
 const orange = '#e37620';
 const offWhite = '#e6e6d9';
+const gold = '#e3ae20';
 
 const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
@@ -17,7 +18,7 @@ const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
 const BOARD_BG = pinkDarker;
 
-const VALID_PREVIEW_COLOR = '#e3ae20';
+const VALID_PREVIEW_COLOR = gold;
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 

@@ -157,8 +157,8 @@ const handleDragEnd = () => {
             stroke: GRID_COLOR,
             strokeWidth: 2,
             cornerRadius: 4,
-            offsetX: 1,
-            offsetY: 1
+            offsetX: 0,
+            offsetY: 0
           }" />
         </v-layer>
       </v-stage>
