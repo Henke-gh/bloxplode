@@ -2,6 +2,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
+import { useBoardPosition } from '../composables/useBoardPosition';
 
 //Colours
 const pinkDark = '#c320e3';
@@ -19,8 +20,8 @@ const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
 const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 
 const ANIMATION_DURATION = 600;
-const DROP_OFFSET_ROW = 2;
-const DROP_OFFSET_COL = 2;
+
+const { screenToBoard, isValidBoardPosition } = useBoardPosition();
 
 const store = useGameStore();
 const boardContainer = ref(null);
@@ -125,20 +126,11 @@ watch(() => store.dragPosition, (newPos) => {
     return;
   }
 
-  const rect = boardContainer.value.getBoundingClientRect();
-  const cursorX = newPos.x - rect.left;
-  const cursorY = newPos.y - rect.top;
+  const boardPos = screenToBoard(newPos.x, newPos.y, boardContainer.value);
 
-  let cursorCol = Math.floor(cursorX / CELL_SIZE);
-  let cursorRow = Math.floor(cursorY / CELL_SIZE);
-
-  // Offset placement location
-  cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
-  cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
-
-  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-    cursorCell.value = { row: cursorRow, col: cursorCol };
-    store.setHoveringCell(cursorRow, cursorCol);
+  if (boardPos) {
+    cursorCell.value = boardPos;
+    store.setHoveringCell(boardPos.row, boardPos.col);
   } else {
     cursorCell.value = null;
     store.setHoveringCell(null, null);
@@ -149,21 +141,11 @@ const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
-  const rect = boardContainer.value.getBoundingClientRect();
+  const boardPos = screenToBoard(e.clientX, e.clientY, boardContainer.value);
 
-  const cursorX = e.clientX - rect.left;
-  const cursorY = e.clientY - rect.top;
-
-  let cursorCol = Math.floor(cursorX / CELL_SIZE);
-  let cursorRow = Math.floor(cursorY / CELL_SIZE);
-
-  // Offset placement location
-  cursorRow = Math.max(0, cursorRow - DROP_OFFSET_ROW);
-  cursorCol = Math.max(0, cursorCol - DROP_OFFSET_COL);
-
-  if (cursorRow >= 0 && cursorRow < BOARD_SIZE && cursorCol >= 0 && cursorCol < BOARD_SIZE) {
-    cursorCell.value = { row: cursorRow, col: cursorCol };
-    store.setHoveringCell(cursorRow, cursorCol);
+  if (boardPos) {
+    cursorCell.value = boardPos;
+    store.setHoveringCell(boardPos.row, boardPos.col);
   } else {
     cursorCell.value = null;
     store.setHoveringCell(null, null);
@@ -184,20 +166,18 @@ const handleDrop = (e) => {
     return;
   }
 
-  const rect = boardContainer.value.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const boardPos = screenToBoard(e.clientX, e.clientY, boardContainer.value);
 
-  let col = Math.floor(x / CELL_SIZE);
-  let row = Math.floor(y / CELL_SIZE);
+  if (!boardPos) {
+    store.clearDragState();
+    cursorCell.value = null;
+    return;
+  }
 
-  // Offset placement location
-  row = Math.max(0, row - DROP_OFFSET_ROW);
-  col = Math.max(0, col - DROP_OFFSET_COL);
-
+  const { row, col } = boardPos;
   const shape = store.shapes.find(s => s.id === shapeId);
 
-  if (shape && row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+  if (shape) {
     store.placeShape(shape, row, col);
   }
 
