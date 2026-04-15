@@ -146,7 +146,63 @@ export const TETROMINOES = {
   dot: { shape: [[1]], width: 1, height: 1 },
 };
 
+export const advancedShapes = {
+  cube: {
+    shape: [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1],
+    ],
+    width: 3,
+    height: 3,
+  },
+  cross: {
+    shape: [
+      [0, 1, 0],
+      [1, 1, 1],
+      [0, 1, 0],
+    ],
+    width: 3,
+    height: 3,
+  },
+  diagonal: {
+    shape: [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    width: 3,
+    height: 3,
+  },
+  diagonal2: {
+    shape: [
+      [0, 0, 1],
+      [0, 1, 0],
+      [1, 0, 0],
+    ],
+    width: 3,
+    height: 3,
+  },
+  diagonalShort: {
+    shape: [
+      [1, 0],
+      [0, 1],
+    ],
+    width: 2,
+    height: 2,
+  },
+  diagonalShort2: {
+    shape: [
+      [0, 1],
+      [1, 0],
+    ],
+    width: 2,
+    height: 2,
+  },
+};
+
 export const SHAPE_NAMES = Object.keys(TETROMINOES);
+export const ADVANCED_SHAPE_NAMES = Object.keys(advancedShapes);
 
 function shuffleArray(array) {
   const result = [...array];
