@@ -65,6 +65,8 @@ export const useGameStore = defineStore("game", () => {
         }
       }
     }
+    //Award some points for placing a tile.
+    score.value += 5;
 
     shapes.value = shapes.value.filter((s) => s.id !== shape.id);
     const cleared = checkAndClearLines();
