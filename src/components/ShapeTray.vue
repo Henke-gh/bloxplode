@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useGameStore } from '../stores/game';
-import { TETROMINOES } from '../assets/tetrominoes';
+import { TETROMINOES, advancedShapes, COMBINED_SHAPE_OBJECT } from '../assets/tetrominoes';
 import { useBoardPosition } from '../composables/useBoardPosition';
 
 const CELL_SIZE = 24;
@@ -14,7 +14,12 @@ const { screenToBoard } = useBoardPosition();
 const store = useGameStore();
 
 const getShapeConfig = (shape) => {
-  const matrix = TETROMINOES[shape.name].shape;
+  let matrix = TETROMINOES[shape.name].shape;
+
+  if (store.score >= 50) {
+    matrix = COMBINED_SHAPE_OBJECT[shape.name].shape;
+  }
+
   const rows = matrix.length;
   const cols = matrix[0].length;
 

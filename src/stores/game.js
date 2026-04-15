@@ -70,7 +70,7 @@ export const useGameStore = defineStore("game", () => {
     const cleared = checkAndClearLines();
 
     if (shapes.value.length === 0) {
-      shapes.value = getRandomShapes(3);
+      shapes.value = getRandomShapes(3, score.value);
     }
 
     if (!cleared) {

@@ -203,6 +203,8 @@ export const advancedShapes = {
 
 export const SHAPE_NAMES = Object.keys(TETROMINOES);
 export const ADVANCED_SHAPE_NAMES = Object.keys(advancedShapes);
+export const COMBINED_SHAPES = SHAPE_NAMES + ADVANCED_SHAPE_NAMES;
+export const COMBINED_SHAPE_OBJECT = Object.assign(TETROMINOES, advancedShapes);
 
 function shuffleArray(array) {
   const result = [...array];
@@ -213,13 +215,25 @@ function shuffleArray(array) {
   return result;
 }
 
-export function getRandomShapes(count = 3) {
-  const availableShapes = shuffleArray(SHAPE_NAMES);
-  const selectedCount = Math.min(count, availableShapes.length);
+export function getRandomShapes(count = 3, currentScore = 0) {
+  if (currentScore < 50) {
+    const availableShapes = shuffleArray(SHAPE_NAMES);
+    const selectedCount = Math.min(count, availableShapes.length);
+    console.log(COMBINED_SHAPES);
+    console.log(SHAPE_NAMES);
+    return availableShapes.slice(0, selectedCount).map((name, index) => ({
+      id: `${name}-${Date.now()}-${index}`,
+      name,
+      ...TETROMINOES[name],
+    }));
+  } else {
+    const availableShapes = shuffleArray(COMBINED_SHAPES);
+    const selectedCount = Math.min(count, availableShapes.length);
 
-  return availableShapes.slice(0, selectedCount).map((name, index) => ({
-    id: `${name}-${Date.now()}-${index}`,
-    name,
-    ...TETROMINOES[name],
-  }));
+    return availableShapes.slice(0, selectedCount).map((name, index) => ({
+      id: `${name}-${Date.now()}-${index}`,
+      name,
+      ...COMBINED_SHAPE_OBJECT[name],
+    }));
+  }
 }
