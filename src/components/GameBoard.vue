@@ -252,7 +252,7 @@ function createExplosionParticles(row, col) {
   const centerY = row * CELL_SIZE + CELL_SIZE / 2;
   const particleSize = CELL_SIZE / 8;
 
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 32; i++) {
     const angle = (Math.PI / 2) * i + Math.random() * 0.5;
     const speed = 80 + Math.random() * 60;
     if (i % 2) {
