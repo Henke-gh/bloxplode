@@ -3,6 +3,7 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/game';
 import { TETROMINOES } from '../assets/tetrominoes';
 import { useBoardPosition } from '../composables/useBoardPosition';
+import { useAnimations } from '../composables/useAnimations';
 
 //Colours
 const pinkDark = '#c320e3';
@@ -25,16 +26,11 @@ const CURSOR_INDICATOR_COLOR = 'rgba(255, 255, 255, 0.15)';
 const ANIMATION_DURATION = 600;
 
 const { screenToBoard, isValidBoardPosition } = useBoardPosition();
+const { particles, createExplosion, stopAllAnimations } = useAnimations();
 
 const store = useGameStore();
 const boardContainer = ref(null);
 const cursorCell = ref(null);
-
-// Particle system for explosion animation
-const particles = ref([]);
-const clearingRowCells = ref([]);
-const clearingColCells = ref([]);
-let animationFrameId = null;
 
 const gridConfig = computed(() => ({
   width: BOARD_SIZE * CELL_SIZE,
@@ -45,9 +41,8 @@ const cells = computed(() => {
   const result = [];
   for (let row = 0; row < BOARD_SIZE; row++) {
     for (let col = 0; col < BOARD_SIZE; col++) {
-      // Keep cells visible during animation
-      const isRowClearing = store.clearingPhase === 'row' && clearingRowCells.value.some(c => c.row === row && c.col === col);
-      const isColClearing = store.clearingPhase === 'col' && clearingColCells.value.some(c => c.row === row && c.col === col);
+      const isRowClearing = store.clearingPhase === 'row' && store.rowsToClear.includes(row);
+      const isColClearing = store.clearingPhase === 'col' && store.colsToClear.includes(col);
       const isClearing = isRowClearing || isColClearing;
 
       result.push({
@@ -215,12 +210,19 @@ watch(() => store.clearingPhase, (newPhase, oldPhase) => {
 
 function triggerRowExplosion() {
   const rowCells = store.cellsToClear.filter(cell =>
-    store.board[cell.row].every((c, idx) => c !== null)
+    store.board[cell.row].every((c) => c !== null)
   );
-  clearingRowCells.value = rowCells;
 
   rowCells.forEach(cell => {
-    createExplosionParticles(cell.row, cell.col);
+    const x = cell.col * CELL_SIZE + CELL_SIZE / 2;
+    const y = cell.row * CELL_SIZE + CELL_SIZE / 2;
+    createExplosion({
+      x,
+      y,
+      colors: [orange, offWhite],
+      count: 32,
+      particleSize: CELL_SIZE / 8
+    });
   });
 
   setTimeout(() => {
@@ -229,17 +231,18 @@ function triggerRowExplosion() {
 }
 
 function triggerColExplosion() {
-  const colCells = [];
-  store.colsToClear.forEach(c => {
-    for (let r = 0; r < BOARD_SIZE; r++) {
-      colCells.push({ row: r, col: c });
+  store.colsToClear.forEach(col => {
+    for (let row = 0; row < BOARD_SIZE; row++) {
+      const x = col * CELL_SIZE + CELL_SIZE / 2;
+      const y = row * CELL_SIZE + CELL_SIZE / 2;
+      createExplosion({
+        x,
+        y,
+        colors: [orange, offWhite],
+        count: 32,
+        particleSize: CELL_SIZE / 8
+      });
     }
-  });
-
-  clearingColCells.value = colCells;
-
-  colCells.forEach(cell => {
-    createExplosionParticles(cell.row, cell.col);
   });
 
   setTimeout(() => {
@@ -247,96 +250,8 @@ function triggerColExplosion() {
   }, ANIMATION_DURATION);
 }
 
-function createExplosionParticles(row, col) {
-  const centerX = col * CELL_SIZE + CELL_SIZE / 2;
-  const centerY = row * CELL_SIZE + CELL_SIZE / 2;
-  const particleSize = CELL_SIZE / 8;
-
-  for (let i = 0; i < 32; i++) {
-    const angle = (Math.PI / 2) * i + Math.random() * 0.5;
-    const speed = 80 + Math.random() * 60;
-    if (i % 2) {
-      particles.value.push({
-        id: `${Date.now()}-${row}-${col}-${i}`,
-        startX: centerX,
-        startY: centerY,
-        x: centerX,
-        y: centerY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: particleSize,
-        rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 360,
-        color: orange,
-        startTime: Date.now(),
-        row,
-        col
-      });
-    } else {
-      particles.value.push({
-        id: `${Date.now()}-${row}-${col}-${i}`,
-        startX: centerX,
-        startY: centerY,
-        x: centerX,
-        y: centerY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: particleSize,
-        rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 360,
-        color: offWhite,
-        startTime: Date.now(),
-        row,
-        col
-      });
-    }
-
-
-  }
-
-  startParticleAnimation();
-}
-
-function startParticleAnimation() {
-  if (animationFrameId) return;
-
-  const animate = () => {
-    const now = Date.now();
-    const elapsed = now - (particles.value[0]?.startTime || now);
-    const progress = elapsed / ANIMATION_DURATION;
-
-    if (progress >= 1) {
-      particles.value = [];
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-      }
-      return;
-    }
-
-    particles.value = particles.value.map(p => {
-      const pElapsed = now - p.startTime;
-      const pProgress = pElapsed / ANIMATION_DURATION;
-
-      return {
-        ...p,
-        x: p.startX + p.vx * pProgress,
-        y: p.startY + p.vy * pProgress,
-        rotation: p.rotation + p.rotationSpeed * pProgress,
-        opacity: 1 - pProgress
-      };
-    });
-
-    animationFrameId = requestAnimationFrame(animate);
-  };
-
-  animationFrameId = requestAnimationFrame(animate);
-}
-
 onUnmounted(() => {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-  }
+  stopAllAnimations();
 });
 </script>
 
