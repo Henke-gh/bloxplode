@@ -24,8 +24,9 @@ const store = useGameStore();
       <ShapeTray />
 
       <div v-if="store.gameState === 'gameover'" class="game-over">
-        <p>Game Over!</p>
-        <button @click="store.resetGame">Play Again</button>
+        <h2 class="kavoon-regular">Game Over!</h2>
+        <p class="kavoon-regular">Score: <span>{{ store.score }}</span></p>
+        <button @click="store.resetGame" class="kavoon-regular">Play Again</button>
       </div>
       <Flower class="icon" />
     </footer>
@@ -73,23 +74,27 @@ const store = useGameStore();
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.9);
-  padding: 32px 48px;
-  border-radius: 12px;
+  background: #833ab4;
+  background: linear-gradient(164deg,
+      rgb(66, 30, 91) 0%,
+      rgb(253, 29, 186) 50%,
+      rgb(53, 23, 72) 100%);
+  padding: 2rem 3rem;
+  border-radius: 1rem;
+  border: 4px double var(--gold);
   text-align: center;
   z-index: 100;
+  color: var(--gold);
 }
 
 .game-over p {
-  font-size: 32px;
-  color: #EDC9AF;
   margin-bottom: 16px;
 }
 
 .game-over button {
-  background: #EDC9AF;
-  color: #121212;
-  border: none;
+  background: var(--pink);
+  color: var(--gold);
+  border: 1px solid var(--gold);
   padding: 12px 24px;
   font-size: 16px;
   font-weight: bold;

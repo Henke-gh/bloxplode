@@ -146,7 +146,65 @@ export const TETROMINOES = {
   dot: { shape: [[1]], width: 1, height: 1 },
 };
 
+export const advancedShapes = {
+  cube: {
+    shape: [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1],
+    ],
+    width: 3,
+    height: 3,
+  },
+  cross: {
+    shape: [
+      [0, 1, 0],
+      [1, 1, 1],
+      [0, 1, 0],
+    ],
+    width: 3,
+    height: 3,
+  },
+  diagonal: {
+    shape: [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    width: 3,
+    height: 3,
+  },
+  diagonal2: {
+    shape: [
+      [0, 0, 1],
+      [0, 1, 0],
+      [1, 0, 0],
+    ],
+    width: 3,
+    height: 3,
+  },
+  diagonalShort: {
+    shape: [
+      [1, 0],
+      [0, 1],
+    ],
+    width: 2,
+    height: 2,
+  },
+  diagonalShort2: {
+    shape: [
+      [0, 1],
+      [1, 0],
+    ],
+    width: 2,
+    height: 2,
+  },
+};
+
 export const SHAPE_NAMES = Object.keys(TETROMINOES);
+export const ADVANCED_SHAPE_NAMES = Object.keys(advancedShapes);
+export const COMBINED_SHAPES = [...SHAPE_NAMES, ...ADVANCED_SHAPE_NAMES];
+export const COMBINED_SHAPE_OBJECT = Object.assign(TETROMINOES, advancedShapes);
 
 function shuffleArray(array) {
   const result = [...array];
@@ -157,13 +215,23 @@ function shuffleArray(array) {
   return result;
 }
 
-export function getRandomShapes(count = 3) {
-  const availableShapes = shuffleArray(SHAPE_NAMES);
-  const selectedCount = Math.min(count, availableShapes.length);
+export function getRandomShapes(count = 3, currentScore = 0) {
+  if (currentScore < 50) {
+    const availableShapes = shuffleArray(SHAPE_NAMES);
+    const selectedCount = Math.min(count, availableShapes.length);
+    return availableShapes.slice(0, selectedCount).map((name, index) => ({
+      id: `${name}-${Date.now()}-${index}`,
+      name,
+      ...TETROMINOES[name],
+    }));
+} else {
+    const availableShapes = shuffleArray(COMBINED_SHAPES);
+    const selectedCount = Math.min(count, availableShapes.length);
 
-  return availableShapes.slice(0, selectedCount).map((name, index) => ({
-    id: `${name}-${Date.now()}-${index}`,
-    name,
-    ...TETROMINOES[name],
-  }));
+    return availableShapes.slice(0, selectedCount).map((name, index) => ({
+      id: `${name}-${Date.now()}-${index}`,
+      name,
+      ...COMBINED_SHAPE_OBJECT[name],
+    }));
+  }
 }

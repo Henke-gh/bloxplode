@@ -65,12 +65,14 @@ export const useGameStore = defineStore("game", () => {
         }
       }
     }
+    //Award some points for placing a tile.
+    score.value += 5;
 
     shapes.value = shapes.value.filter((s) => s.id !== shape.id);
     const cleared = checkAndClearLines();
 
     if (shapes.value.length === 0) {
-      shapes.value = getRandomShapes(3);
+      shapes.value = getRandomShapes(3, score.value);
     }
 
     if (!cleared) {
