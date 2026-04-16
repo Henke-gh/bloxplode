@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { getRandomShapes, TETROMINOES } from "../assets/tetrominoes";
+import {
+  getLevelInfo,
+  getNextLevelThreshold,
+  generateBoardPattern,
+} from "../assets/levels";
 
 const BOARD_SIZE = 8;
 const POINTS_PER_LINE = 10;
@@ -18,6 +23,8 @@ export const useGameStore = defineStore("game", () => {
   const level = ref(1);
   const gameState = ref("playing");
   const highScore = ref(localStorage.getItem("highScore") || 0);
+  const showLevelOverlay = ref(false);
+  const preFilledCells = ref([]);
   const draggingShapeId = ref(null);
   const hoveringCell = ref(null);
   const dragPosition = ref(null); // { x, y } cursor position during drag
@@ -48,6 +55,12 @@ export const useGameStore = defineStore("game", () => {
           if (board.value[boardRow][boardCol] !== null) {
             return false;
           }
+          const isPreFilled = preFilledCells.value.some(
+            (c) => c.row === boardRow && c.col === boardCol,
+          );
+          if (isPreFilled) {
+            return false;
+          }
         }
       }
     }
@@ -61,7 +74,11 @@ export const useGameStore = defineStore("game", () => {
     for (let r = 0; r < matrix.length; r++) {
       for (let c = 0; c < matrix[r].length; c++) {
         if (matrix[r][c]) {
-          board.value[row + r][col + c] = shape.name;
+          const boardRow = row + r;
+          const boardCol = col + c;
+          const existing = board.value[boardRow][boardCol];
+          board.value[boardRow][boardCol] =
+            existing === "filled" ? shape.name : shape.name;
         }
       }
     }
@@ -72,7 +89,8 @@ export const useGameStore = defineStore("game", () => {
     const cleared = checkAndClearLines();
 
     if (shapes.value.length === 0) {
-      shapes.value = getRandomShapes(3, score.value);
+      const useAdvanced = getLevelInfo(score.value).useAdvancedShapes;
+      shapes.value = getRandomShapes(3, useAdvanced ? 1000 : 0);
     }
 
     if (!cleared) {
@@ -86,20 +104,26 @@ export const useGameStore = defineStore("game", () => {
     const foundCols = [];
 
     for (let r = 0; r < BOARD_SIZE; r++) {
-      if (board.value[r].every((cell) => cell !== null)) {
+      const preFilledInRow = preFilledCells.value.filter(
+        (c) => c.row === r,
+      ).length;
+      const cellsInRow = board.value[r].filter((cell) => cell !== null).length;
+      if (preFilledInRow + cellsInRow === BOARD_SIZE) {
         foundRows.push(r);
       }
     }
 
     for (let c = 0; c < BOARD_SIZE; c++) {
-      let full = true;
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        if (board.value[r][c] === null) {
-          full = false;
-          break;
-        }
+      const preFilledInCol = preFilledCells.value.filter(
+        (cell) => cell.col === c,
+      ).length;
+      const cellsInCol = board.value.reduce(
+        (count, row) => (row[c] !== null ? count + 1 : count),
+        0,
+      );
+      if (cellsInCol + preFilledInCol === BOARD_SIZE) {
+        foundCols.push(c);
       }
-      if (full) foundCols.push(c);
     }
 
     if (foundRows.length === 0 && foundCols.length === 0) return false;
@@ -130,6 +154,11 @@ export const useGameStore = defineStore("game", () => {
       return { row, col };
     });
 
+    const didLevelUp = updateLevel();
+    if (didLevelUp) {
+      return { rowsToClear: foundRows, colsToClear: foundCols, cells: [] };
+    }
+
     // Set up animation state - row first, then column
     cellsToClear.value = allCells;
 
@@ -157,12 +186,14 @@ export const useGameStore = defineStore("game", () => {
 
   const nextClearPhase = () => {
     if (clearingPhase.value === "row") {
-      // Clear all rows that were originally full
       rowsToClear.value.forEach((r) => {
         for (let c = 0; c < BOARD_SIZE; c++) {
           board.value[r][c] = null;
         }
       });
+      preFilledCells.value = preFilledCells.value.filter(
+        (c) => !rowsToClear.value.includes(c.row),
+      );
 
       if (colsToClear.value.length > 0) {
         clearingPhase.value = "col";
@@ -170,12 +201,14 @@ export const useGameStore = defineStore("game", () => {
         clearingPhase.value = "complete";
       }
     } else if (clearingPhase.value === "col") {
-      // Clear all columns that were originally full
       colsToClear.value.forEach((c) => {
         for (let r = 0; r < BOARD_SIZE; r++) {
           board.value[r][c] = null;
         }
       });
+      preFilledCells.value = preFilledCells.value.filter(
+        (c) => !colsToClear.value.includes(c.col),
+      );
       clearingPhase.value = "complete";
     }
 
@@ -268,8 +301,37 @@ export const useGameStore = defineStore("game", () => {
     return shapes.value.find((s) => s.id === draggingShapeId.value);
   };
 
+  const updateLevel = () => {
+    const levelInfo = getLevelInfo(score.value);
+
+    if (levelInfo.level > level.value) {
+      const newLevel = levelInfo.level;
+      const useAdvanced = levelInfo.useAdvancedShapes;
+
+      level.value = newLevel;
+      showLevelOverlay.value = true;
+
+      board.value = createEmptyBoard();
+      preFilledCells.value = generateBoardPattern(levelInfo);
+      shapes.value = getRandomShapes(3, useAdvanced ? 1000 : 0);
+
+      rowsToClear.value = [];
+      colsToClear.value = [];
+      cellsToClear.value = [];
+      clearingPhase.value = null;
+
+      setTimeout(() => {
+        showLevelOverlay.value = false;
+      }, 1500);
+
+      return true;
+    }
+    return false;
+  };
+
   const resetGame = () => {
     board.value = createEmptyBoard();
+    preFilledCells.value = [];
     shapes.value = getRandomShapes(3);
     score.value = 0;
     level.value = 1;
@@ -284,6 +346,8 @@ export const useGameStore = defineStore("game", () => {
     level,
     gameState,
     highScore,
+    showLevelOverlay,
+    preFilledCells,
     draggingShapeId,
     hoveringCell,
     dragPosition,
