@@ -4,6 +4,7 @@ import { useGameStore } from './stores/game';
 import GameBoard from './components/GameBoard.vue';
 import ShapeTray from './components/ShapeTray.vue';
 import ScoreBoard from './components/ScoreBoard.vue';
+import LevelOverlay from './components/LevelOverlay.vue';
 import { Flower } from "@lucide/vue";
 
 const store = useGameStore();
@@ -22,7 +23,7 @@ const store = useGameStore();
 
     <footer class="footer">
       <ShapeTray />
-
+      <LevelOverlay />
       <div v-if="store.gameState === 'gameover'" class="game-over">
         <h2 class="kavoon-regular">Game Over!</h2>
         <p class="kavoon-regular">Score: <span>{{ store.score }}</span></p>

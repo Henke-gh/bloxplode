@@ -44,12 +44,14 @@ const cells = computed(() => {
       const isRowClearing = store.clearingPhase === 'row' && store.rowsToClear.includes(row);
       const isColClearing = store.clearingPhase === 'col' && store.colsToClear.includes(col);
       const isClearing = isRowClearing || isColClearing;
+      const isPreFilled = store.preFilledCells.some(c => c.row === row && c.col === col);
+      const isOccupied = store.board[row][col] !== null || isPreFilled;
 
       result.push({
         key: `${row}-${col}`,
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
-        fill: store.board[row][col] ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
+        fill: isOccupied ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
         stroke: isClearing ? orange : pinkDarker,
         strokeWidth: isClearing ? 2 : 1,
         row,
