@@ -211,9 +211,12 @@ watch(() => store.clearingPhase, (newPhase, oldPhase) => {
 });
 
 function triggerRowExplosion() {
-  const rowCells = store.cellsToClear.filter(cell =>
-    store.board[cell.row].every((c) => c !== null)
-  );
+  const rowCells = store.cellsToClear.filter(cell => {
+    const boardCells = store.board[cell.row];
+    const preFilledInRow = store.preFilledCells.filter(c => c.row === cell.row).length;
+    const nonNullBoard = boardCells.filter(c => c !== null).length;
+    return preFilledInRow + nonNullBoard === BOARD_SIZE;
+  });
 
   rowCells.forEach(cell => {
     const x = cell.col * CELL_SIZE + CELL_SIZE / 2;
@@ -235,15 +238,19 @@ function triggerRowExplosion() {
 function triggerColExplosion() {
   store.colsToClear.forEach(col => {
     for (let row = 0; row < BOARD_SIZE; row++) {
-      const x = col * CELL_SIZE + CELL_SIZE / 2;
-      const y = row * CELL_SIZE + CELL_SIZE / 2;
-      createExplosion({
-        x,
-        y,
-        colors: [orange, offWhite],
-        count: 32,
-        particleSize: CELL_SIZE / 8
-      });
+      const preFilledInCol = store.preFilledCells.filter(c => c.col === col).length;
+      const nonNullInCol = store.board.filter(r => r[col] !== null).length;
+      if (preFilledInCol + nonNullInCol === BOARD_SIZE) {
+        const x = col * CELL_SIZE + CELL_SIZE / 2;
+        const y = row * CELL_SIZE + CELL_SIZE / 2;
+        createExplosion({
+          x,
+          y,
+          colors: [orange, offWhite],
+          count: 32,
+          particleSize: CELL_SIZE / 8
+        });
+      }
     }
   });
 
