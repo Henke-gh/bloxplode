@@ -33,6 +33,7 @@ watch(() => store.showLevelOverlay, (show) => {
   position: fixed;
   top: 50%;
   left: 50%;
+  transform: translate(-50%, -50%);
   width: 250px;
   height: 200px;
   display: flex;
@@ -64,29 +65,29 @@ watch(() => store.showLevelOverlay, (show) => {
 
 @keyframes levelIn {
   0% {
-    transform: scale(0.5);
+    transform: translate(-50%, -50%) scale(0.5);
     opacity: 0;
   }
 
   50% {
-    transform: scale(1.2);
+    transform: translate(-50%, -50%) scale(1.2);
     opacity: 1;
   }
 
   100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes levelOut {
   0% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
 
   100% {
-    transform: scale(1.5);
+    transform: translate(-50%, -50%) scale(1.5);
     opacity: 0;
   }
 }
