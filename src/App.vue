@@ -50,7 +50,7 @@ const store = useGameStore();
 
 .title {
   font-size: 48px;
-  color: var(--gold);
+  color: var(--yellow);
   letter-spacing: 2px;
 }
 
@@ -84,7 +84,7 @@ const store = useGameStore();
   border: 4px double var(--gold);
   text-align: center;
   z-index: 100;
-  color: var(--gold);
+  color: var(--yellow);
 }
 
 .game-over p {
@@ -93,7 +93,7 @@ const store = useGameStore();
 
 .game-over button {
   background: var(--pink);
-  color: var(--gold);
+  color: var(--yellow);
   border: 1px solid var(--gold);
   padding: 12px 24px;
   font-size: 16px;

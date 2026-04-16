@@ -47,7 +47,7 @@ const store = useGameStore();
 
 .label {
   font-size: 1rem;
-  color: var(--gold);
+  color: var(--yellow);
   font-weight: 600;
   text-transform: uppercase;
 }
