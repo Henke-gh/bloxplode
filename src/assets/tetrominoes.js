@@ -147,7 +147,7 @@ export const TETROMINOES = {
 };
 
 export const advancedShapes = {
-  cube: {
+  /*  cube: {
     shape: [
       [1, 1, 1],
       [1, 1, 1],
@@ -155,7 +155,7 @@ export const advancedShapes = {
     ],
     width: 3,
     height: 3,
-  },
+  }, */ //Too oppressive, hard to play around
   cross: {
     shape: [
       [0, 1, 0],
@@ -224,7 +224,7 @@ export function getRandomShapes(count = 3, currentScore = 0) {
       name,
       ...TETROMINOES[name],
     }));
-} else {
+  } else {
     const availableShapes = shuffleArray(COMBINED_SHAPES);
     const selectedCount = Math.min(count, availableShapes.length);
 
