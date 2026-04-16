@@ -216,7 +216,7 @@ function shuffleArray(array) {
 }
 
 export function getRandomShapes(count = 3, currentScore = 0) {
-  if (currentScore < 50) {
+  if (currentScore < 100) {
     const availableShapes = shuffleArray(SHAPE_NAMES);
     const selectedCount = Math.min(count, availableShapes.length);
     return availableShapes.slice(0, selectedCount).map((name, index) => ({
