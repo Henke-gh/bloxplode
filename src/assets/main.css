@@ -8,7 +8,14 @@
   --yellow: #ffd700;
   --light: #e6e6d9;
   --orange: #e37620;
-  --brown: #422309;
+  --brown: #19302b;
+  --brownMud: #423e0a;
+  --brownLightMud: #704e16;
+  --brownOrange: #9e5020;
+  --blue: #74b5d6;
+  --lilac: #8e8ed4;
+  --mutedPurple: #a776b5;
+  --mutedPink: #b55e7a;
 }
 
 .kavoon-regular {
@@ -28,12 +35,13 @@ body {
   flex-direction: column;
   align-items: center;
   background: #833ab4;
-  background: linear-gradient(
+  background-image: linear-gradient(
     164deg,
     rgb(66, 30, 91) 0%,
     rgb(253, 29, 186) 50%,
     rgb(53, 23, 72) 100%
   );
+  background-image: url("blockBg.png");
   min-height: 100vh;
 }
 

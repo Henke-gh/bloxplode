@@ -39,15 +39,15 @@ const store = useGameStore();
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: var(--pinkDarker);
-  border: 2px solid gold;
+  background: var(--brown);
+  border: 2px solid var(--brownOrange);
   border-radius: 1rem;
   padding: 0.2rem 1rem;
 }
 
 .label {
   font-size: 1rem;
-  color: var(--yellow);
+  color: var(--gold);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -55,7 +55,7 @@ const store = useGameStore();
 .value {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #EDC9AF;
+  color: var(--gold);
   line-height: 1;
   padding-bottom: 5px;
 }

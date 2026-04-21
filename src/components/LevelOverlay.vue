@@ -40,10 +40,11 @@ watch(() => store.showLevelOverlay, (show) => {
   align-items: center;
   justify-content: center;
   background: #833ab4;
-  background: linear-gradient(164deg,
+  background-image: linear-gradient(164deg,
       rgb(66, 30, 91) 0%,
       rgb(253, 29, 186) 50%,
       rgb(53, 23, 72) 100%);
+  background-image: url("blockBg.png");
   border-radius: 1rem;
   border: 4px double var(--gold);
   z-index: 9999;
@@ -51,11 +52,8 @@ watch(() => store.showLevelOverlay, (show) => {
 }
 
 .level-text {
-  color: #ffd700;
-  text-shadow:
-    0 0 20px rgba(255, 215, 0, 0.8),
-    0 0 40px rgba(255, 215, 0, 0.6),
-    0 0 60px rgba(255, 215, 0, 0.4);
+  color: var(--gold);
+  text-shadow: 2px 2px 3px var(--brown);
   letter-spacing: 0.1em;
 }
 

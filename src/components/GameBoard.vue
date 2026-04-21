@@ -9,15 +9,18 @@ import { useAnimations } from '../composables/useAnimations';
 const pinkDark = '#c320e3';
 const pinkDarker = '#931dab';
 const orange = '#e37620';
+const yellow = '#ffd700';
 const offWhite = '#e6e6d9';
 const gold = '#e3ae20';
+const darkBrown = '#19302b';
+const lightBrown = '#704e16';
 
 const CELL_SIZE = 32;
 const BOARD_SIZE = 8;
-const CELL_BG_COLOR = pinkDark;
+const CELL_BG_COLOR = lightBrown;
 const CELL_OCCUPIED_COLOR = '#ffd700';
 const GRID_COLOR = '#444';
-const BOARD_BG = pinkDarker;
+const BOARD_BG = darkBrown;
 
 const VALID_PREVIEW_COLOR = gold;
 const INVALID_PREVIEW_COLOR = 'rgba(220, 53, 69, 0.5)';
@@ -52,7 +55,7 @@ const cells = computed(() => {
         x: col * CELL_SIZE,
         y: row * CELL_SIZE,
         fill: isOccupied ? CELL_OCCUPIED_COLOR : CELL_BG_COLOR,
-        stroke: isClearing ? orange : pinkDarker,
+        stroke: isClearing ? orange : darkBrown,
         strokeWidth: isClearing ? 2 : 1,
         row,
         col
@@ -107,7 +110,7 @@ const cursorIndicatorCells = computed(() => {
           key: `cursor-${r}-${c}`,
           x: (col + c) * CELL_SIZE,
           y: (row + r) * CELL_SIZE,
-          stroke: canPlace ? '#e320a8' : '#f44336',
+          stroke: canPlace ? orange : '#f44336',
           strokeWidth: 2,
         });
       }
@@ -211,9 +214,12 @@ watch(() => store.clearingPhase, (newPhase, oldPhase) => {
 });
 
 function triggerRowExplosion() {
-  const rowCells = store.cellsToClear.filter(cell =>
-    store.board[cell.row].every((c) => c !== null)
-  );
+  const rowCells = store.cellsToClear.filter(cell => {
+    const boardCells = store.board[cell.row];
+    const preFilledInRow = store.preFilledCells.filter(c => c.row === cell.row).length;
+    const nonNullBoard = boardCells.filter(c => c !== null).length;
+    return preFilledInRow + nonNullBoard === BOARD_SIZE;
+  });
 
   rowCells.forEach(cell => {
     const x = cell.col * CELL_SIZE + CELL_SIZE / 2;
@@ -235,15 +241,19 @@ function triggerRowExplosion() {
 function triggerColExplosion() {
   store.colsToClear.forEach(col => {
     for (let row = 0; row < BOARD_SIZE; row++) {
-      const x = col * CELL_SIZE + CELL_SIZE / 2;
-      const y = row * CELL_SIZE + CELL_SIZE / 2;
-      createExplosion({
-        x,
-        y,
-        colors: [orange, offWhite],
-        count: 32,
-        particleSize: CELL_SIZE / 8
-      });
+      const preFilledInCol = store.preFilledCells.filter(c => c.col === col).length;
+      const nonNullInCol = store.board.filter(r => r[col] !== null).length;
+      if (preFilledInCol + nonNullInCol === BOARD_SIZE) {
+        const x = col * CELL_SIZE + CELL_SIZE / 2;
+        const y = row * CELL_SIZE + CELL_SIZE / 2;
+        createExplosion({
+          x,
+          y,
+          colors: [orange, offWhite],
+          count: 32,
+          particleSize: CELL_SIZE / 8
+        });
+      }
     }
   });
 
@@ -269,7 +279,7 @@ onUnmounted(() => {
           height: BOARD_SIZE * CELL_SIZE,
           fill: BOARD_BG,
           cornerRadius: 4,
-          stroke: pinkDark,
+          stroke: lightBrown,
           strokeWidth: 2
         }" />
         <v-rect v-for="cell in cells" :key="cell.key" :config="{
@@ -281,8 +291,8 @@ onUnmounted(() => {
           stroke: cell.stroke,
           strokeWidth: 1,
           cornerRadius: 4,
-          offsetX: 0,
-          offsetY: 0
+          offsetX: -1.5,
+          offsetY: -1.5
         }" />
         <v-rect v-for="preview in previewCells" :key="preview.key" :config="{
           x: preview.x,
@@ -330,6 +340,6 @@ onUnmounted(() => {
   border: 4px double #ffd700;
   border-radius: 1rem;
   padding: 0.5rem;
-  background: var(--pinkDarker);
+  background: var(--brown);
 }
 </style>

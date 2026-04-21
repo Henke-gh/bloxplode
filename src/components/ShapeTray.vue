@@ -175,9 +175,12 @@ const handleDragEnd = () => {
 .shape-tray {
   display: flex;
   gap: 24px;
-  border-radius: 8px;
+  width: 280px;
+  border-radius: 1rem;
   justify-content: center;
   align-items: center;
+  border: 4px solid var(--gold);
+  background-color: var(--brownMud);
   min-height: 140px;
 }
 
