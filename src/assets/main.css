@@ -41,7 +41,7 @@ body {
     rgb(253, 29, 186) 50%,
     rgb(53, 23, 72) 100%
   );
-  background-image: url("blockbg.png");
+  background-image: url("/blockbg.png");
   min-height: 100vh;
 }
 

@@ -81,7 +81,7 @@ const store = useGameStore();
       rgb(66, 30, 91) 0%,
       rgb(253, 29, 186) 50%,
       rgb(53, 23, 72) 100%);
-  background-image: url("blockbg.png");
+  background-image: url("/blockbg.png");
   padding: 2rem 3rem;
   border-radius: 1rem;
   border: 4px double var(--gold);
