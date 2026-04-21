@@ -51,8 +51,9 @@ const store = useGameStore();
 
 .title {
   font-size: 48px;
-  color: var(--yellow);
+  color: var(--gold);
   letter-spacing: 2px;
+  text-shadow: 2px 2px 4px var(--brown);
 }
 
 .game-area {
@@ -80,12 +81,14 @@ const store = useGameStore();
       rgb(66, 30, 91) 0%,
       rgb(253, 29, 186) 50%,
       rgb(53, 23, 72) 100%);
+  background-image: url("blockBg.png");
   padding: 2rem 3rem;
   border-radius: 1rem;
   border: 4px double var(--gold);
   text-align: center;
   z-index: 100;
   color: var(--yellow);
+  text-shadow: 2px 2px 3px var(--brown);
 }
 
 .game-over p {
@@ -93,7 +96,7 @@ const store = useGameStore();
 }
 
 .game-over button {
-  background: var(--pink);
+  background: var(--brown);
   color: var(--yellow);
   border: 1px solid var(--gold);
   padding: 12px 24px;
